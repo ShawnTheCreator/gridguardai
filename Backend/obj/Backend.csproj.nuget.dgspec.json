@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\User\\Desktop\\Hackathons\\Backend\\Backend.csproj": {}
+    "C:\\Users\\User\\Desktop\\Hackathons\\gridguardai\\backend\\Backend.csproj": {}
   },
   "projects": {
-    "C:\\Users\\User\\Desktop\\Hackathons\\Backend\\Backend.csproj": {
+    "C:\\Users\\User\\Desktop\\Hackathons\\gridguardai\\backend\\Backend.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\User\\Desktop\\Hackathons\\Backend\\Backend.csproj",
+        "projectUniqueName": "C:\\Users\\User\\Desktop\\Hackathons\\gridguardai\\backend\\Backend.csproj",
         "projectName": "Backend",
-        "projectPath": "C:\\Users\\User\\Desktop\\Hackathons\\Backend\\Backend.csproj",
+        "projectPath": "C:\\Users\\User\\Desktop\\Hackathons\\gridguardai\\backend\\Backend.csproj",
         "packagesPath": "C:\\Users\\User\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\User\\Desktop\\Hackathons\\Backend\\obj\\",
+        "outputPath": "C:\\Users\\User\\Desktop\\Hackathons\\gridguardai\\backend\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -54,9 +54,23 @@
               "target": "Package",
               "version": "[9.0.12, )"
             },
+            "Microsoft.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[9.0.0, )"
+            },
+            "Microsoft.EntityFrameworkCore.Design": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[9.0.0, )"
+            },
             "Microsoft.VisualStudio.Azure.Containers.Tools.Targets": {
               "target": "Package",
               "version": "[1.23.0, )"
+            },
+            "Npgsql.EntityFrameworkCore.PostgreSQL": {
+              "target": "Package",
+              "version": "[9.0.0, )"
             }
           },
           "imports": [
