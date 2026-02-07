@@ -8,7 +8,7 @@ South Africa loses R23 billion annually to electricity theft. Illegal connection
 
 ---
 
-## What We Built
+## What We Are Building
 
 **Energy Balancing**: Observer meters at distribution poles calculate `I_pole - Σ I_meters > Threshold` in real-time.
 
