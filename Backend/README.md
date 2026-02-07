@@ -84,4 +84,4 @@ docker logs gridguardian_api --tail 50
 
 ---
 
-**Stack:** .NET 9, PostgreSQL, Docker
+**Stack:** .NET 9, TimescaleDB, Docker
