@@ -2,7 +2,6 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using Backend.Models;
 using MQTTnet;
-using MQTTnet.Client;
 
 namespace Backend.Services
 {
