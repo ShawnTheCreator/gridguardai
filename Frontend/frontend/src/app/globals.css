@@ -1,0 +1,77 @@
+@import "tailwindcss";
+
+@theme {
+  /* ONYX Color System */
+  --color-obsidian: #09090b;
+  --color-charcoal: #18181b;
+  --color-concrete: #f4f4f5;
+  --color-acid: #ccff00;    /* The signature GridGuard Green */
+  --color-danger: #ff453a;  /* Theft Alert Red */
+  --color-void: #000000;
+  --color-surface: #0a0a0a;
+  --color-panel: #111111;
+  --color-border: #222222;
+  --color-dim: #444444;
+  --color-muted: #525252;
+  --color-text-main: #e5e5e5;
+  
+  /* Fonts - matching the HTML reference */
+  --font-sans: "Inter", "Space Grotesk", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  /* Animations from KINETIC library */
+  --animate-float: float 8s ease-in-out infinite;
+  --animate-spin-slow: spin 3s linear infinite;
+  --animate-radar: radar 2s infinite;
+  --animate-draw: draw 0.4s ease-out forwards;
+  
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+  @keyframes radar {
+    0% { transform: scale(0.5); opacity: 1; border-width: 2px; }
+    100% { transform: scale(2.5); opacity: 0; border-width: 0px; }
+  }
+  @keyframes draw {
+    to { stroke-dashoffset: 0; }
+  }
+}
+
+/* Base layer reset */
+@layer base {
+  body {
+    @apply bg-void text-text-main antialiased min-h-screen overflow-hidden;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+/* Utilities */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  /* The tactical grid background from the HTML */
+  .bg-grid-pattern {
+    background-size: 40px 40px;
+    background-image: 
+      linear-gradient(to right, rgba(128, 128, 128, 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(128, 128, 128, 0.05) 1px, transparent 1px);
+  }
+
+  /* Custom Scrollbar for that "Hacker" feel */
+  .custom-scroll::-webkit-scrollbar {
+    width: 5px;
+  }
+  .custom-scroll::-webkit-scrollbar-track {
+    background: #09090b;
+  }
+  .custom-scroll::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 2px;
+  }
+  .custom-scroll::-webkit-scrollbar-thumb:hover {
+    background: #444;
+  }
+}
