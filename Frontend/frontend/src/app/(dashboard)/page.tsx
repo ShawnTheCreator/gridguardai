@@ -1,6 +1,19 @@
+"use client";
+
+import { useState } from "react";
 import MapLoader from "@/features/map/MapLoader";
+import { ControlDrawer } from "@/features/control/ControlDrawer";
+import { GhostLoadChart } from "@/features/monitor/GhostLoadChart";
 
 export default function DashboardPage() {
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
+  const handleNodeClick = (id: string) => {
+    setSelectedNodeId(id);
+    setIsDrawerOpen(true);
+  };
+
   return (
     <div className="p-6 md:p-12">
       <div className="flex justify-between items-end mb-8">
@@ -28,7 +41,32 @@ export default function DashboardPage() {
       
       {/* The Map Component */}
       <div className="mb-8">
-        <MapLoader />
+        <MapLoader onPoleClick={handleNodeClick} />
+      </div>
+
+      {/* Telemetry Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <div className="lg:col-span-2">
+          <GhostLoadChart />
+        </div>
+
+        <div className="border border-border bg-panel p-4 rounded-lg flex flex-col">
+          <h3 className="text-xs font-bold font-mono text-zinc-400 uppercase tracking-widest mb-4">
+            Live Event Log
+          </h3>
+          <div className="flex-1 space-y-3 overflow-hidden relative">
+            {[1, 2, 3].map((_, i) => (
+              <div key={i} className="flex gap-3 text-xs border-b border-white/5 pb-2">
+                <span className="font-mono text-dim">10:3{4 - i}</span>
+                <div>
+                  <span className="text-acid block">Energy Balance Normal</span>
+                  <span className="text-zinc-500 text-[10px]">Pole TR-04 stable</span>
+                </div>
+              </div>
+            ))}
+            <div className="absolute bottom-0 w-full h-10 bg-linear-to-t from-panel to-transparent"></div>
+          </div>
+        </div>
       </div>
 
       {/* Analytics Row */}
@@ -53,6 +91,12 @@ export default function DashboardPage() {
             </button>
         </div>
       </div>
+
+      <ControlDrawer
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        nodeId={selectedNodeId}
+      />
     </div>
   );
 }

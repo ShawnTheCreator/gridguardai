@@ -5,7 +5,11 @@ import { MapContainer, TileLayer, CircleMarker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 
-// Mock data for transformer poles in a municipal sector
+// Define the shape of our props
+interface TacticalMapProps {
+  onPoleClick: (id: string) => void;
+}
+
 const GRID_NODES = [
   { id: "TR-01", lat: -26.17, lng: 28.23, status: "healthy", load: 45 },
   { id: "TR-02", lat: -26.18, lng: 28.24, status: "warning", load: 88 },
@@ -14,14 +18,15 @@ const GRID_NODES = [
 ];
 
 const STATUS_COLORS = {
-  healthy: "#00cc66",     // Success Green
-  warning: "#ffaa00",     // Warning Amber
-  active_theft: "#ff3300" // Danger Red
+  healthy: "#00cc66",
+  warning: "#ffaa00",
+  active_theft: "#ff3300"
 };
 
-export default function TacticalMap() {
-  // Fix for default Leaflet icons in Next.js
+export default function TacticalMap({ onPoleClick }: TacticalMapProps) {
+  
   useEffect(() => {
+    // Leaflet icon fix for Next.js
     delete (L.Icon.Default.prototype as any)._getIconUrl;
     L.Icon.Default.mergeOptions({
       iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
@@ -32,19 +37,19 @@ export default function TacticalMap() {
 
   return (
     <div className="w-full h-150 border border-border rounded-lg overflow-hidden relative group">
-      {/* Tactical Overlay Legend */}
-      <div className="absolute top-4 right-4 z-1000 bg-surface/90 backdrop-blur-md border border-border p-3 rounded font-mono text-[10px] space-y-2">
+      {/* Legend Overlay */}
+      <div className="absolute top-4 right-4 z-1000 bg-surface/90 backdrop-blur-md border border-border p-3 rounded font-mono text-[10px] space-y-2 pointer-events-none">
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
-          <span className="text-zinc-400 uppercase tracking-tighter">Healthy Grid</span>
+          <span className="text-zinc-400">Healthy</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 rounded-full bg-warning" />
-          <span className="text-zinc-400 uppercase tracking-tighter">Thermal Stress</span>
+          <span className="text-zinc-400">Thermal Stress</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 rounded-full bg-danger shadow-[0_0_8px_#ff3300]" />
-          <span className="text-white font-bold uppercase tracking-tighter">Active Bypass</span>
+          <span className="text-white font-bold">Theft Detected</span>
         </div>
       </div>
 
@@ -55,7 +60,7 @@ export default function TacticalMap() {
         zoomControl={false}
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
+          attribution='&copy; OSM'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         
@@ -70,12 +75,16 @@ export default function TacticalMap() {
               color: node.status === 'active_theft' ? '#fff' : 'transparent',
               weight: 2,
             }}
+            eventHandlers={{
+              click: () => {
+                onPoleClick(node.id); // <--- Only fires when this specific dot is clicked
+              },
+            }}
           >
             <Popup className="tactical-popup">
-              <div className="font-mono text-xs">
+              <div className="font-mono text-xs cursor-pointer" onClick={() => onPoleClick(node.id)}>
                 <div className="font-bold border-b border-zinc-200 pb-1 mb-1">ASSET: {node.id}</div>
-                <div>Status: <span className="uppercase">{node.status.replace('_', ' ')}</span></div>
-                <div>Current Load: {node.load}%</div>
+                <div className="text-[10px] text-acid">CLICK TO INSPECT &gt;&gt;</div>
               </div>
             </Popup>
           </CircleMarker>

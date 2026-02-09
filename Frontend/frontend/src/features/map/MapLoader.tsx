@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 
 // This tells Next.js NOT to render the map on the server
-const TacticalMap = dynamic(() => import("./TacticalMap"), { 
+const TacticalMap = dynamic<any>(() => import("./TacticalMap"), {
   ssr: false,
   loading: () => (
     <div className="w-full h-150 bg-panel border border-border rounded-lg flex items-center justify-center">
@@ -15,4 +15,6 @@ const TacticalMap = dynamic(() => import("./TacticalMap"), {
   )
 });
 
-export default TacticalMap;
+export default function MapLoader(props: any) {
+  return <TacticalMap {...props} />;
+}
