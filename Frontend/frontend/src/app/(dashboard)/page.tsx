@@ -4,14 +4,20 @@ import { useState } from "react";
 import MapLoader from "@/features/map/MapLoader";
 import { ControlDrawer } from "@/features/control/ControlDrawer";
 import { GhostLoadChart } from "@/features/monitor/GhostLoadChart";
+import { useToast } from "@/components/ui/Toast";
 
 export default function DashboardPage() {
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const { showToast } = useToast();
 
   const handleNodeClick = (id: string) => {
     setSelectedNodeId(id);
     setIsDrawerOpen(true);
+  };
+
+  const handleEmergencyOverride = () => {
+    showToast("EMERGENCY OVERRIDE INITIATED: SECTOR 4 ISOLATING...", "error");
   };
 
   return (
@@ -44,58 +50,65 @@ export default function DashboardPage() {
         <MapLoader onPoleClick={handleNodeClick} />
       </div>
 
-      {/* Telemetry Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        <div className="lg:col-span-2">
-          <GhostLoadChart />
-        </div>
-
-        <div className="border border-border bg-panel p-4 rounded-lg flex flex-col">
-          <h3 className="text-xs font-bold font-mono text-zinc-400 uppercase tracking-widest mb-4">
-            Live Event Log
-          </h3>
-          <div className="flex-1 space-y-3 overflow-hidden relative">
-            {[1, 2, 3].map((_, i) => (
-              <div key={i} className="flex gap-3 text-xs border-b border-white/5 pb-2">
-                <span className="font-mono text-dim">10:3{4 - i}</span>
-                <div>
-                  <span className="text-acid block">Energy Balance Normal</span>
-                  <span className="text-zinc-500 text-[10px]">Pole TR-04 stable</span>
-                </div>
-              </div>
-            ))}
-            <div className="absolute bottom-0 w-full h-10 bg-linear-to-t from-panel to-transparent"></div>
-          </div>
-        </div>
-      </div>
-
       {/* Analytics Row */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div className="border border-border bg-surface/50 p-4 rounded">
             <div className="text-[10px] font-mono text-dim uppercase mb-1">AI Theft Confidence</div>
             <div className="text-2xl font-bold text-acid">94.01%</div>
-            <div className="text-[9px] text-zinc-600 mt-2">Based on CNN-XGBoost signature matching [cite: 71]</div>
+            [cite_start]<div className="text-[9px] text-zinc-600 mt-2">Based on CNN-XGBoost signature matching [cite: 71]</div>
         </div>
         <div className="border border-border bg-surface/50 p-4 rounded">
             <div className="text-[10px] font-mono text-dim uppercase mb-1">Thermal Overload Risk</div>
-            <div className="text-2xl font-bold text-warning">Medium</div>
-            <div className="text-[9px] text-zinc-600 mt-2">3 Transformers at 85%+ capacity [cite: 99]</div>
+            <div className="text-2xl font-bold text-white">Medium</div>
+            [cite_start]<div className="text-[9px] text-zinc-600 mt-2">3 Transformers at 85%+ capacity [cite: 99]</div>
         </div>
         <div className="md:col-span-2 border border-border bg-surface/50 p-4 rounded flex items-center justify-between">
             <div>
                 <div className="text-[10px] font-mono text-dim uppercase mb-1">Auto-Isolation Status</div>
                 <div className="text-sm font-bold text-white uppercase">Ready / Armed</div>
             </div>
-            <button className="px-4 py-2 bg-acid text-black font-bold text-xs uppercase hover:bg-white transition-colors">
+            <button 
+                onClick={handleEmergencyOverride}
+                className="px-4 py-2 bg-acid text-black font-bold text-xs uppercase hover:bg-white transition-colors shadow-[0_0_15px_rgba(204,255,0,0.4)]"
+            >
                 Emergency Manual Override
             </button>
         </div>
       </div>
 
-      <ControlDrawer
-        isOpen={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
-        nodeId={selectedNodeId}
+      {/* Telemetry Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <div className="lg:col-span-2">
+           <GhostLoadChart />
+        </div>
+
+        <div className="border border-border bg-panel p-4 rounded-lg flex flex-col">
+            <h3 className="text-xs font-bold font-mono text-zinc-400 uppercase tracking-widest mb-4">
+                Live Event Log
+            </h3>
+            <div className="flex-1 space-y-3 overflow-hidden relative">
+                {[
+                    { time: "10:34", msg: "Energy Balance Normal", sub: "Pole TR-04 stable" },
+                    { time: "10:33", msg: "Energy Balance Normal", sub: "Pole TR-04 stable" },
+                    { time: "10:32", msg: "Energy Balance Normal", sub: "Pole TR-04 stable" },
+                ].map((log, i) => (
+                    <div key={i} className="flex gap-3 text-xs border-b border-white/5 pb-2">
+                        <span className="font-mono text-dim">{log.time}</span>
+                        <div>
+                            <span className="text-acid block">{log.msg}</span>
+                            <span className="text-zinc-500 text-[10px]">{log.sub}</span>
+                        </div>
+                    </div>
+                ))}
+                <div className="absolute bottom-0 w-full h-10 bg-linear-to-t from-panel to-transparent"></div>
+            </div>
+        </div>
+      </div>
+
+      <ControlDrawer 
+        isOpen={isDrawerOpen} 
+        onClose={() => setIsDrawerOpen(false)} 
+        nodeId={selectedNodeId} 
       />
     </div>
   );

@@ -55,6 +55,18 @@ cd gridguardai
 docker compose up -d --build
 ```
 
+**Stop**:
+
+```bash
+docker compose down
+```
+
+**View logs**:
+
+```bash
+docker compose logs -f
+```
+
 Wait 15 seconds for database initialization.
 
 **Test**:
