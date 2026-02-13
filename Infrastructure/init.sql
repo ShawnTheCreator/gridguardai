@@ -5,3 +5,11 @@ CREATE TABLE IF NOT EXISTS telemetry (
     current DOUBLE PRECISION NOT NULL,
     time TIMESTAMPTZ NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS theft_history_events (
+    event_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    house_id TEXT NOT NULL,
+    reason TEXT NOT NULL,
+    status TEXT NOT NULL
+);
