@@ -11,10 +11,15 @@ public class AppDbContext : DbContext
     // This represents your table
     public DbSet<Telemetry> Telemetry { get; set; }
 
+    // Theft history audit trail
+    public DbSet<TheftHistoryEvent> TheftHistoryEvents { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // Tell C# that 'Time' and 'DeviceId' together make a unique row
         modelBuilder.Entity<Telemetry>()
             .HasKey(t => new { t.Time, t.DeviceId });
+
+        // TheftHistoryEvent uses EventId as its primary key (configured via [Key] attribute)
     }
 }
