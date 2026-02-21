@@ -41,7 +41,7 @@
 /* Base layer reset */
 @layer base {
   body {
-    @apply bg-void text-text-main antialiased min-h-screen overflow-hidden;
+    @apply bg-void text-text-main antialiased min-h-screen;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
