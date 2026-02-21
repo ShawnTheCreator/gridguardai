@@ -1,34 +1,68 @@
 services:
-  # Service 1: The Database (Downloads a pre-made image)
-  timescaledb:
-    image: timescale/timescaledb:latest-pg14
-    container_name: gridguardian_db
+  # ── MySQL (TaurusDB-compatible locally) ────────────────────────────────────
+  mysql:
+    image: mysql:8.0
+    container_name: gridguard_db
     restart: always
     environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: password123
-      POSTGRES_DB: gridguardian
+      MYSQL_ROOT_PASSWORD: password123
+      MYSQL_DATABASE: gridguard
+      MYSQL_USER: gridguard_user
+      MYSQL_PASSWORD: password123
     ports:
-      - "5432:5432"
+      - "3306:3306"
     volumes:
-      - gridguardian_data:/var/lib/postgresql/data
-      - ./infrastructure/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - gridguard_mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "gridguard_user", "-ppassword123"]
+      interval: 10s
+      retries: 5
 
-  # Service 2: Your C# Backend (Builds from your Dockerfile)
+  # ── MQTT Broker (Mosquitto) ────────────────────────────────────────────────
+  mosquitto:
+    image: eclipse-mosquitto:2
+    container_name: gridguard_mqtt
+    restart: always
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./Infrastructure/mosquitto.conf:/mosquitto/config/mosquitto.conf
+
+  # ── .NET Backend ───────────────────────────────────────────────────────────
   backend:
     build:
-      context: ./backend         # Look inside the 'backend' folder...
-      dockerfile: Dockerfile     # ...and find the file named 'Dockerfile'
-    container_name: gridguardian_api
+      context: ./Backend
+      dockerfile: Dockerfile
+    container_name: gridguard_api
     restart: always
     ports:
-      - "5078:8080"              # Map Local Port 5078 -> Container Port 8080
+      - "5000:8080"
     environment:
-      # CRITICAL: This overrides appsettings.json to talk to the 'timescaledb' container
-      - ConnectionStrings__DefaultConnection=Host=timescaledb;Port=5432;Database=gridguardian;Username=admin;Password=password123
       - ASPNETCORE_HTTP_PORTS=8080
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__TaurusDB=Server=mysql;Port=3306;Database=gridguard;Uid=gridguard_user;Pwd=password123;SslMode=None;CharSet=utf8mb4;
+      - Mqtt__Server=mosquitto
+      - Mqtt__Port=1883
     depends_on:
-      - timescaledb              # Wait for DB to start before starting Backend
+      mysql:
+        condition: service_healthy
+      mosquitto:
+        condition: service_started
+
+  # ── Python AI Microservice ─────────────────────────────────────────────────
+  microservice:
+    build:
+      context: ./Microservice
+      dockerfile: Dockerfile
+    container_name: gridguard_ai
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=production
+    depends_on:
+      - backend
 
 volumes:
-  gridguardian_data:
+  gridguard_mysql_data:
