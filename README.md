@@ -69,13 +69,18 @@ docker compose logs -f
 
 Wait 15 seconds for database initialization.
 
-**Test**:
+**Test Endpoints**:
 
 ```bash
 curl -X POST http://localhost:5078/api/telemetry \
   -H "Content-Type: application/json" \
   -d '{"deviceId": "P-402", "current": 45.5}'
 ```
+
+**Test Login**:
+To test the Next.js frontend or the `/api/auth/login` endpoint, use the following seeded admin credentials:
+- **Email:** `thabo@gridguard.co.za`
+- **Password:** `gridguard123`
 
 ---
 

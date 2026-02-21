@@ -7,19 +7,24 @@ public class AppDbContext : DbContext
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
-
-    // This represents your table
     public DbSet<Telemetry> Telemetry { get; set; }
-
-    // Theft history audit trail
     public DbSet<TheftHistoryEvent> TheftHistoryEvents { get; set; }
+    public DbSet<User> Users { get; set; }
+    public DbSet<Asset> Assets { get; set; }
+    public DbSet<Incident> Incidents { get; set; }
+    public DbSet<Notification> Notifications { get; set; }
+    public DbSet<SystemConfig> SystemConfigs { get; set; }
+    public DbSet<AuditLog> AuditLogs { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        // Tell C# that 'Time' and 'DeviceId' together make a unique row
+        // Telemetry uses composite key
         modelBuilder.Entity<Telemetry>()
             .HasKey(t => new { t.Time, t.DeviceId });
 
-        // TheftHistoryEvent uses EventId as its primary key (configured via [Key] attribute)
+        // Map DbSet names correctly to lowercase tables in init.sql
+        modelBuilder.Entity<User>().ToTable("users");
+
+        // SystemConfig uses Key as primary key (configured via [Key] attribute)
     }
 }
