@@ -1,10 +1,33 @@
 "use client";
 
-import React from "react";
-import { MOCK_ASSETS } from "@/lib/data";
+import React, { useState, useEffect } from "react";
+import { MOCK_ASSETS, type Asset } from "@/lib/data";
 import { Server, MoreHorizontal, Download } from "lucide-react";
+import { apiGetAssets } from "@/lib/api";
 
 export default function AssetsPage() {
+  const [assets, setAssets] = useState(MOCK_ASSETS);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const data = await apiGetAssets();
+        if (data && data.length > 0) {
+          setAssets(data.map(a => ({
+            id: a.id,
+            type: a.type as Asset["type"],
+            location: a.location,
+            status: a.status as Asset["status"],
+            load: a.load,
+            lastInspection: new Date(a.lastInspection).toLocaleDateString(),
+          })));
+        }
+      } catch {
+        // API unavailable — keep mock data
+      }
+    })();
+  }, []);
+
   return (
     <div className="p-6 md:p-12 space-y-8">
       {/* Header */}
@@ -19,7 +42,7 @@ export default function AssetsPage() {
           </p>
         </div>
         <button className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded text-xs text-white font-mono uppercase transition-colors">
-            <Download className="w-3 h-3" /> Export CSV
+          <Download className="w-3 h-3" /> Export CSV
         </button>
       </div>
 
@@ -38,21 +61,21 @@ export default function AssetsPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {MOCK_ASSETS.map((asset) => (
+            {assets.map((asset) => (
               <tr key={asset.id} className="group hover:bg-white/5 transition-colors font-mono text-xs">
                 <td className="px-6 py-4 text-white font-bold">{asset.id}</td>
                 <td className="px-6 py-4 text-zinc-400">{asset.type}</td>
                 <td className="px-6 py-4 text-zinc-400">{asset.location}</td>
                 <td className="px-6 py-4 text-zinc-300">
-                    <div className="flex items-center gap-2">
-                        <div className="w-16 h-1 bg-black rounded-full overflow-hidden">
-                            <div 
-                                className={`h-full ${asset.load > 90 ? 'bg-danger' : asset.load > 70 ? 'bg-warning' : 'bg-success'}`} 
-                                style={{ width: `${asset.load}%` }} 
-                            />
-                        </div>
-                        {asset.load}%
+                  <div className="flex items-center gap-2">
+                    <div className="w-16 h-1 bg-black rounded-full overflow-hidden">
+                      <div
+                        className={`h-full ${asset.load > 90 ? 'bg-danger' : asset.load > 70 ? 'bg-warning' : 'bg-success'}`}
+                        style={{ width: `${asset.load}%` }}
+                      />
                     </div>
+                    {asset.load}%
+                  </div>
                 </td>
                 <td className="px-6 py-4">
                   <span className={`
@@ -67,9 +90,9 @@ export default function AssetsPage() {
                 </td>
                 <td className="px-6 py-4 text-zinc-500">{asset.lastInspection}</td>
                 <td className="px-6 py-4 text-right">
-                    <button className="p-1 hover:bg-white/10 rounded text-zinc-500 hover:text-white transition-colors">
-                        <MoreHorizontal className="w-4 h-4" />
-                    </button>
+                  <button className="p-1 hover:bg-white/10 rounded text-zinc-500 hover:text-white transition-colors">
+                    <MoreHorizontal className="w-4 h-4" />
+                  </button>
                 </td>
               </tr>
             ))}

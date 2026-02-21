@@ -1,15 +1,34 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import MapLoader from "@/features/map/MapLoader";
 import { ControlDrawer } from "@/features/control/ControlDrawer";
 import { GhostLoadChart } from "@/features/monitor/GhostLoadChart";
 import { useToast } from "@/components/ui/Toast";
+import { apiGetDashboardSummary } from "@/lib/api";
 
 export default function DashboardPage() {
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const { showToast } = useToast();
+  const [totalSectorLoad, setTotalSectorLoad] = useState("14.2");
+  const [activeLosses, setActiveLosses] = useState("R12,450");
+  const [totalNodes, setTotalNodes] = useState("1,240");
+  const [activeAlerts, setActiveAlerts] = useState("2");
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const summary = await apiGetDashboardSummary();
+        if (summary) {
+          setTotalSectorLoad(summary.totalSectorLoad.toString());
+          setActiveLosses(`R${summary.activeLosses.toLocaleString()}`);
+          setTotalNodes(summary.totalNodes.toLocaleString());
+          setActiveAlerts(summary.activeAlerts.toString());
+        }
+      } catch { /* keep hardcoded values */ }
+    })();
+  }, []);
 
   const handleNodeClick = (id: string) => {
     setSelectedNodeId(id);
@@ -31,20 +50,20 @@ export default function DashboardPage() {
             Sector 4: Monitoring 1,240 Nodes | 2 Active Alerts Detected
           </p>
         </div>
-        
+
         <div className="hidden md:flex gap-4">
-            <div className="text-right">
-                <div className="text-[10px] font-mono text-dim uppercase">Total Sector Load</div>
-                <div className="text-xl font-bold text-white font-mono">14.2 <span className="text-xs text-zinc-500">MW</span></div>
-            </div>
-            <div className="h-10 w-px bg-border"></div>
-            <div className="text-right">
-                <div className="text-[10px] font-mono text-dim uppercase">Active Losses</div>
-                <div className="text-xl font-bold text-danger font-mono">R12,450 <span className="text-xs text-zinc-500">/hr</span></div>
-            </div>
+          <div className="text-right">
+            <div className="text-[10px] font-mono text-dim uppercase">Total Sector Load</div>
+            <div className="text-xl font-bold text-white font-mono">14.2 <span className="text-xs text-zinc-500">MW</span></div>
+          </div>
+          <div className="h-10 w-px bg-border"></div>
+          <div className="text-right">
+            <div className="text-[10px] font-mono text-dim uppercase">Active Losses</div>
+            <div className="text-xl font-bold text-danger font-mono">R12,450 <span className="text-xs text-zinc-500">/hr</span></div>
+          </div>
         </div>
       </div>
-      
+
       {/* The Map Component */}
       <div className="mb-8">
         <MapLoader onPoleClick={handleNodeClick} />
@@ -53,62 +72,62 @@ export default function DashboardPage() {
       {/* Analytics Row */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div className="border border-border bg-surface/50 p-4 rounded">
-            <div className="text-[10px] font-mono text-dim uppercase mb-1">AI Theft Confidence</div>
-            <div className="text-2xl font-bold text-acid">94.01%</div>
-            [cite_start]<div className="text-[9px] text-zinc-600 mt-2">Based on CNN-XGBoost signature matching [cite: 71]</div>
+          <div className="text-[10px] font-mono text-dim uppercase mb-1">AI Theft Confidence</div>
+          <div className="text-2xl font-bold text-acid">94.01%</div>
+          [cite_start]<div className="text-[9px] text-zinc-600 mt-2">Based on CNN-XGBoost signature matching [cite: 71]</div>
         </div>
         <div className="border border-border bg-surface/50 p-4 rounded">
-            <div className="text-[10px] font-mono text-dim uppercase mb-1">Thermal Overload Risk</div>
-            <div className="text-2xl font-bold text-white">Medium</div>
-            [cite_start]<div className="text-[9px] text-zinc-600 mt-2">3 Transformers at 85%+ capacity [cite: 99]</div>
+          <div className="text-[10px] font-mono text-dim uppercase mb-1">Thermal Overload Risk</div>
+          <div className="text-2xl font-bold text-white">Medium</div>
+          [cite_start]<div className="text-[9px] text-zinc-600 mt-2">3 Transformers at 85%+ capacity [cite: 99]</div>
         </div>
         <div className="md:col-span-2 border border-border bg-surface/50 p-4 rounded flex items-center justify-between">
-            <div>
-                <div className="text-[10px] font-mono text-dim uppercase mb-1">Auto-Isolation Status</div>
-                <div className="text-sm font-bold text-white uppercase">Ready / Armed</div>
-            </div>
-            <button 
-                onClick={handleEmergencyOverride}
-                className="px-4 py-2 bg-acid text-black font-bold text-xs uppercase hover:bg-white transition-colors shadow-[0_0_15px_rgba(204,255,0,0.4)]"
-            >
-                Emergency Manual Override
-            </button>
+          <div>
+            <div className="text-[10px] font-mono text-dim uppercase mb-1">Auto-Isolation Status</div>
+            <div className="text-sm font-bold text-white uppercase">Ready / Armed</div>
+          </div>
+          <button
+            onClick={handleEmergencyOverride}
+            className="px-4 py-2 bg-acid text-black font-bold text-xs uppercase hover:bg-white transition-colors shadow-[0_0_15px_rgba(204,255,0,0.4)]"
+          >
+            Emergency Manual Override
+          </button>
         </div>
       </div>
 
       {/* Telemetry Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         <div className="lg:col-span-2">
-           <GhostLoadChart />
+          <GhostLoadChart />
         </div>
 
         <div className="border border-border bg-panel p-4 rounded-lg flex flex-col">
-            <h3 className="text-xs font-bold font-mono text-zinc-400 uppercase tracking-widest mb-4">
-                Live Event Log
-            </h3>
-            <div className="flex-1 space-y-3 overflow-hidden relative">
-                {[
-                    { time: "10:34", msg: "Energy Balance Normal", sub: "Pole TR-04 stable" },
-                    { time: "10:33", msg: "Energy Balance Normal", sub: "Pole TR-04 stable" },
-                    { time: "10:32", msg: "Energy Balance Normal", sub: "Pole TR-04 stable" },
-                ].map((log, i) => (
-                    <div key={i} className="flex gap-3 text-xs border-b border-white/5 pb-2">
-                        <span className="font-mono text-dim">{log.time}</span>
-                        <div>
-                            <span className="text-acid block">{log.msg}</span>
-                            <span className="text-zinc-500 text-[10px]">{log.sub}</span>
-                        </div>
-                    </div>
-                ))}
-                <div className="absolute bottom-0 w-full h-10 bg-linear-to-t from-panel to-transparent"></div>
-            </div>
+          <h3 className="text-xs font-bold font-mono text-zinc-400 uppercase tracking-widest mb-4">
+            Live Event Log
+          </h3>
+          <div className="flex-1 space-y-3 overflow-hidden relative">
+            {[
+              { time: "10:34", msg: "Energy Balance Normal", sub: "Pole TR-04 stable" },
+              { time: "10:33", msg: "Energy Balance Normal", sub: "Pole TR-04 stable" },
+              { time: "10:32", msg: "Energy Balance Normal", sub: "Pole TR-04 stable" },
+            ].map((log, i) => (
+              <div key={i} className="flex gap-3 text-xs border-b border-white/5 pb-2">
+                <span className="font-mono text-dim">{log.time}</span>
+                <div>
+                  <span className="text-acid block">{log.msg}</span>
+                  <span className="text-zinc-500 text-[10px]">{log.sub}</span>
+                </div>
+              </div>
+            ))}
+            <div className="absolute bottom-0 w-full h-10 bg-linear-to-t from-panel to-transparent"></div>
+          </div>
         </div>
       </div>
 
-      <ControlDrawer 
-        isOpen={isDrawerOpen} 
-        onClose={() => setIsDrawerOpen(false)} 
-        nodeId={selectedNodeId} 
+      <ControlDrawer
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        nodeId={selectedNodeId}
       />
     </div>
   );

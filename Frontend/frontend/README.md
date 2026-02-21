@@ -20,6 +20,12 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Test Login Credentials
+
+Once the frontend is running, navigate to `http://localhost:3000/login` and use the following seeded credentials to access the Mission Control Dashboard:
+- **Operator ID (Email):** `thabo@gridguard.co.za`
+- **Access Key (Password):** `gridguard123`
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

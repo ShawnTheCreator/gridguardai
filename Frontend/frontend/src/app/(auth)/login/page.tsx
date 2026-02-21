@@ -4,20 +4,37 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ShieldCheck, Lock, ChevronRight, AlertTriangle } from "lucide-react";
 import Link from "next/link"; // For the hackathon demo flow
+import { apiLogin } from "@/lib/api";
 
 export default function LoginPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
-    // Simulate network handshake
-    setTimeout(() => {
-      router.push("/"); // Redirect to Mission Control
-    }, 1500);
+    setErrorMsg(null);
+
+    const form = e.target as HTMLFormElement;
+    const email = (form.elements.namedItem("email") as HTMLInputElement)?.value || "";
+    const password = (form.elements.namedItem("password") as HTMLInputElement)?.value || "";
+
+    try {
+      const result = await apiLogin(email, password);
+      if (result?.token) {
+        localStorage.setItem("gridguard_token", result.token);
+        localStorage.setItem("gridguard_user", JSON.stringify(result.user));
+        router.push("/");
+        return;
+      }
+    } catch (err: any) {
+      setErrorMsg(err.message || "Invalid credentials. Access denied.");
+      setIsLoading(false);
+    }
   };
+
 
   return (
     <div className="space-y-8">
@@ -49,8 +66,9 @@ export default function LoginPage() {
               Operator ID
             </label>
             <div className="relative">
-              <input 
-                type="text" 
+              <input
+                type="text"
+                name="email"
                 placeholder="OP-XXXX"
                 className="w-full bg-panel border border-border rounded p-3 pl-10 text-sm font-mono text-white focus:outline-none focus:border-acid focus:ring-1 focus:ring-acid transition-all placeholder:text-zinc-700"
                 required
@@ -64,8 +82,9 @@ export default function LoginPage() {
               Access Key
             </label>
             <div className="relative">
-              <input 
-                type="password" 
+              <input
+                type="password"
+                name="password"
                 placeholder="••••••••••••"
                 className="w-full bg-panel border border-border rounded p-3 pl-10 text-sm font-mono text-white focus:outline-none focus:border-acid focus:ring-1 focus:ring-acid transition-all placeholder:text-zinc-700"
                 required
@@ -74,8 +93,14 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <button 
-            type="submit" 
+          {errorMsg && (
+            <div className="p-3 rounded bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-mono text-center">
+              {errorMsg}
+            </div>
+          )}
+
+          <button
+            type="submit"
             disabled={isLoading}
             className="w-full bg-acid text-black font-bold uppercase tracking-widest py-3 rounded hover:bg-white transition-colors flex items-center justify-center gap-2 group/btn"
           >
@@ -96,7 +121,7 @@ export default function LoginPage() {
         <div className="flex items-start justify-center gap-2 text-[10px] text-zinc-600 font-mono max-w-xs mx-auto text-left">
           <AlertTriangle className="w-3 h-3 text-danger shrink-0 mt-0.5" />
           <p>
-            WARNING: Unauthorized access to this system is a criminal offense under the 
+            WARNING: Unauthorized access to this system is a criminal offense under the
             Cybercrimes Act 19 of 2020. All IP addresses are logged and geolocated.
           </p>
         </div>
