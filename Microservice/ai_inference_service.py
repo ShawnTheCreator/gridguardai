@@ -1,11 +1,3 @@
-"""
-GridGuard AI - AI Inference Service (Python/FastAPI)
-
-Objective: Analyze electrical waveforms for theft signatures
-Pattern: FastAPI with Async/Await for high-concurrency
-Expert Requirement: Pydantic for strict data validation and mock inference
-"""
-
 import asyncio
 import logging
 import time

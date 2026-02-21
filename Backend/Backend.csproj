@@ -10,15 +10,28 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- API / OpenAPI -->
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.12" />
+
+    <!-- Entity Framework Core + TaurusDB (MySQL-compatible via Pomelo) -->
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.23.0" />
+    <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="9.0.0" />
+
+    <!-- MQTT -->
     <PackageReference Include="MQTTnet" Version="5.0.1.1416" />
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.0" />
+
+    <!-- Real-time Push to Next.js dashboard -->
+    <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.2.0" />
+
+    <!-- Huawei Cloud OBS (Object Storage) -->
+    <PackageReference Include="HuaweiCloud.SDK.Obs" Version="3.0.3" />
+
+    <!-- Docker tooling -->
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.23.0" />
   </ItemGroup>
 
 </Project>
