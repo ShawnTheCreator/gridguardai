@@ -77,7 +77,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           <div className="w-8 h-8 rounded-lg bg-acid flex items-center justify-center">
             <Zap className="w-4 h-4 text-void" />
           </div>
-          <Link href="/home">
+          <Link href="/">
             <span className="font-bold tracking-tight text-white">GridGuard <span className="text-acid">AI</span></span>
           </Link>
         </div>

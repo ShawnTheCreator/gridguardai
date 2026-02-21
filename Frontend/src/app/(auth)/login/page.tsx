@@ -148,7 +148,7 @@ export default function LoginPage() {
     setErrors(errs);
     if (Object.keys(errs).length > 0) return;
     setIsLoading(true);
-    setTimeout(() => router.push("/"), 1500);
+    setTimeout(() => router.push("/admin"), 1500);
   };
 
   return (
