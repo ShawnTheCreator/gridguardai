@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <!-- API / OpenAPI -->
+    <PackageReference Include="DotNetEnv" Version="3.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.12" />
 
     <!-- Entity Framework Core + TaurusDB (MySQL-compatible via Pomelo) -->
@@ -36,6 +37,9 @@
     <!-- Authentication & Security (Phase 1) -->
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.0" />
+    
+    <!-- .env support -->
+    <PackageReference Include="dotenv.net" Version="3.1.2" />
   </ItemGroup>
   
   <ItemGroup>
