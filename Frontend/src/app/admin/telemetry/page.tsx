@@ -42,14 +42,27 @@ export default function TelemetryPage() {
   const [stream, setStream] = useState(INITIAL_STREAM);
 
   useEffect(() => {
-    (async () => {
+    const fetchTelemetry = async () => {
       try {
-        // const streamData = await apiGetRecentTelemetry();
-        // if (streamData) setStream(formatData(streamData));
+        const data = await apiGetRecentTelemetry();
+        if (data && data.length > 0) {
+          setStream(data.map((d, i) => ({
+            id: i,
+            time: d.time,
+            nodeId: d.deviceId,
+            metric: "Current",
+            value: `${d.current.toFixed(1)}A`,
+            status: d.current > 20 ? "CRITICAL" : d.current > 15 ? "WARNING" : "NORMAL",
+          })));
+        }
       } catch {
         // API unavailable — keep mock data
       }
-    })();
+    };
+
+    fetchTelemetry();
+    const interval = setInterval(fetchTelemetry, 5000); // poll every 5s
+    return () => clearInterval(interval);
   }, []);
 
   return (

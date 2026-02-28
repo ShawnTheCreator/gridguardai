@@ -8,6 +8,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@microsoft/signalr": "^10.0.0",
     "clsx": "^2.1.1",
     "framer-motion": "^12.34.3",
     "leaflet": "^1.9.4",
