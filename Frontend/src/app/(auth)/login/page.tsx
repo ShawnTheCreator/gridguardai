@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { apiLogin } from "@/lib/api";
+import { useToast } from "@/components/ui/Toast";
 
 // ── Floating Label Input ─────────────────────────────────────────────────────
 interface FloatingInputProps {
@@ -127,6 +128,7 @@ const HuaweiLogo = () => (
 // ── Page ─────────────────────────────────────────────────────────────────────
 export default function LoginPage() {
   const router = useRouter();
+  const { showToast } = useToast();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
@@ -168,10 +170,12 @@ export default function LoginPage() {
         router.push("/admin");
       } else {
         setErrors({ api: "Invalid credentials. Check your email and access key." });
+        showToast("Incorrect email or password", "error");
         setIsLoading(false);
       }
     } catch {
       setErrors({ api: "Connection error. Is the backend running?" });
+      showToast("Incorrect email or password", "error");
       setIsLoading(false);
     }
   };
