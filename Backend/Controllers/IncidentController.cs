@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Backend.Data;
+using Backend.Models;
 
 namespace Backend.Controllers;
 
@@ -50,4 +51,30 @@ public class IncidentController : ControllerBase
 
         return Ok(incident);
     }
+
+    [HttpPost]
+    public async Task<IActionResult> Create([FromBody] CreateIncidentRequest request)
+    {
+        var incident = new Incident
+        {
+            Id = $"INC-{DateTime.UtcNow:yyyyMMdd-HHmmss}-{Guid.NewGuid().ToString()[..4].ToUpper()}",
+            Time = DateTime.UtcNow.ToString("HH:mm"),
+            Location = request.Location,
+            Type = request.Type,
+            Status = "active",
+            Confidence = request.Confidence,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _context.Incidents.Add(incident);
+        await _context.SaveChangesAsync();
+        return Created($"/api/incidents/{incident.Id}", incident);
+    }
+}
+
+public class CreateIncidentRequest
+{
+    public string Location { get; set; } = string.Empty;
+    public string Type { get; set; } = "theft";
+    public int Confidence { get; set; } = 0;
 }

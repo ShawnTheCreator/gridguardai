@@ -8,7 +8,7 @@ INSERT INTO users (id, email, name, password_hash, role, created_at) VALUES
 ON DUPLICATE KEY UPDATE id=id;
 
 -- Assets (includes name field matching Asset model)
-INSERT INTO assets (id, name, type, location, status, load, lat, lng, last_inspection) VALUES
+INSERT INTO assets (id, name, type, location, status, `load`, lat, lng, last_inspection) VALUES
 ('TR-01', 'Transformer Alpha',   'Transformer', 'Zone A – Sector 12', 'healthy',  87.3, -26.2041, 28.0473, '2026-01-15'),
 ('TR-02', 'Transformer Beta',    'Transformer', 'Zone B – Sector 7',  'warning',  65.1, -26.2070, 28.0330, '2026-01-10'),
 ('TR-03', 'Transformer Gamma',   'Transformer', 'Zone C – Sector 4',  'critical', 92.8, -26.1950, 28.0580, '2025-12-20'),
@@ -35,9 +35,9 @@ INSERT INTO notifications (id, title, message, severity, is_read, created_at) VA
 ON DUPLICATE KEY UPDATE id=id;
 
 -- System config defaults
-INSERT INTO system_config (`key`, `value`) VALUES
-('sensitivity',  '95'),
-('auto_isolate', 'true')
+INSERT INTO system_config (`key`, `value`, `updated_at`) VALUES
+('sensitivity',  '95', NOW()),
+('auto_isolate', 'true', NOW())
 ON DUPLICATE KEY UPDATE `key`=`key`;
 
 -- Audit logs
