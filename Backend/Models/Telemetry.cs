@@ -6,7 +6,7 @@ namespace Backend.Models;
 [Table("telemetry")] // Links to your SQL table
 public class Telemetry
 {
-    [Key] // This is required for Entity Framework
+    // Composite key (Time + DeviceId) is defined in AppDbContext.OnModelCreating
     [Column("time")]
     public DateTime Time { get; set; }
 
