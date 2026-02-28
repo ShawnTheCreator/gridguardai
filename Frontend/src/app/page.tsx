@@ -327,10 +327,21 @@ export default function HomePage() {
                     <span className="font-bold text-white tracking-tight text-sm">GridGuard <span className="text-acid">AI</span></span>
                 </div>
                 <div className="hidden md:flex items-center gap-8">
-                    {["Platform", "Sectors", "Compliance", "Blog"].map((item) => (
-                        <a key={item} href="#" className="text-xs font-mono text-zinc-500 hover:text-white transition-colors tracking-wider">{item}</a>
+                    {[
+                        { label: "Platform", href: "/platform" },
+                        { label: "Sectors", href: "/sectors" },
+                        { label: "Compliance", href: "/compliance" },
+                        { label: "Blog", href: "/blog" },
+                    ].map((item) => (
+                        <Link 
+                            key={item.label} 
+                            href={item.href} 
+                            className="text-xs font-mono text-zinc-500 hover:text-white transition-colors tracking-wider"
+                        >
+                            {item.label}
+                        </Link>
                     ))}
-                </div>
+                </div>  
                 <Link href="/login">
                     <motion.button
                         whileHover={{ scale: 1.02 }}
