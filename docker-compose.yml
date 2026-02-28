@@ -13,8 +13,9 @@ services:
       - "3306:3306"
     volumes:
       - gridguard_mysql_data:/var/lib/mysql
+      - ./Infrastructure/seed.sql:/docker-entrypoint-initdb.d/seed.sql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "gridguard_user", "-ppassword123"]
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "gridguard_user", "-ppassword123" ]
       interval: 10s
       retries: 5
 

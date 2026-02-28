@@ -10,6 +10,9 @@ public class Asset
     [Column("id")]
     public string Id { get; set; } = string.Empty;
 
+    [Column("name")]
+    public string Name { get; set; } = string.Empty;
+
     [Column("type")]
     public string Type { get; set; } = string.Empty; // Transformer, Pole, Substation
 

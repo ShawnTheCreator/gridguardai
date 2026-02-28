@@ -93,7 +93,9 @@ builder.Services.AddAuthentication(Microsoft.AspNetCore.Authentication.JwtBearer
 // ════════════════════════════════════════════════════════════════════════════
 // 8. Standard ASP.NET Core services
 // ════════════════════════════════════════════════════════════════════════════
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(o =>
+        o.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase);
 builder.Services.AddOpenApi();
 builder.Services.AddAuthorization(); // Required for [Authorize] attributes
 

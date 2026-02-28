@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Backend.Data;
 
 namespace Backend.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/incidents")]
 public class IncidentController : ControllerBase

@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Backend.Data;
 
 namespace Backend.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/assets")]
 public class AssetController : ControllerBase
