@@ -47,19 +47,19 @@ export default function DashboardPage() {
             Situational Awareness <span className="text-acid">Live</span>
           </h1>
           <p className="text-zinc-500 font-mono text-sm">
-            Sector 4: Monitoring 1,240 Nodes | 2 Active Alerts Detected
+            Sector 4: Monitoring {totalNodes} Nodes | {activeAlerts} Active Alerts Detected
           </p>
         </div>
 
         <div className="hidden md:flex gap-4">
           <div className="text-right">
             <div className="text-[10px] font-mono text-dim uppercase">Total Sector Load</div>
-            <div className="text-xl font-bold text-white font-mono">14.2 <span className="text-xs text-zinc-500">MW</span></div>
+            <div className="text-xl font-bold text-white font-mono">{totalSectorLoad} <span className="text-xs text-zinc-500">MW</span></div>
           </div>
           <div className="h-10 w-px bg-border"></div>
           <div className="text-right">
             <div className="text-[10px] font-mono text-dim uppercase">Active Losses</div>
-            <div className="text-xl font-bold text-danger font-mono">R12,450 <span className="text-xs text-zinc-500">/hr</span></div>
+            <div className="text-xl font-bold text-danger font-mono">{activeLosses} <span className="text-xs text-zinc-500">/hr</span></div>
           </div>
         </div>
       </div>
