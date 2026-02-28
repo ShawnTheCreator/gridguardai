@@ -52,18 +52,8 @@ export async function apiLogin(email: string, password: string): Promise<LoginRe
         }
 
         return await res.json() as LoginResponse;
-    } catch (e) {
-        // Network error (backend is down / unreachable)
-        console.warn("Backend unreachable, falling back to mock login.", e);
-        return {
-            token: "mock-demo-token",
-            user: {
-                id: "demo-user",
-                email: email || "demo@gridguard.co.za",
-                name: "Demo Admin",
-                role: "Admin"
-            }
-        };
+    } catch {
+        return null;
     }
 }
 
