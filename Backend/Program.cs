@@ -13,6 +13,7 @@ var builder = WebApplication.CreateBuilder(args);
 // ════════════════════════════════════════════════════════════════════════════
 var taurusConnectionString = builder.Configuration.GetConnectionString("TaurusDB");
 
+// Single factory registration — safe for both scoped controllers and singleton TheftService/GridGuardOrchestrator
 builder.Services.AddDbContextFactory<AppDbContext>(options =>
     options.UseMySql(
         taurusConnectionString,
@@ -20,13 +21,6 @@ builder.Services.AddDbContextFactory<AppDbContext>(options =>
         mySqlOptions => mySqlOptions
             .EnableRetryOnFailure(maxRetryCount: 3)
             .CommandTimeout(30)
-    ));
-
-// Also register the non-factory version for legacy repositories that use DI directly
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseMySql(
-        taurusConnectionString,
-        ServerVersion.AutoDetect(taurusConnectionString)
     ));
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -78,22 +72,40 @@ builder.Services.AddCors(options =>
 });
 
 // ════════════════════════════════════════════════════════════════════════════
-// 7. Standard ASP.NET Core services
+// 7. Authentication & JWT (Phase 1)
+// ════════════════════════════════════════════════════════════════════════════
+builder.Services.AddSingleton<JwtService>();
+builder.Services.AddAuthentication(Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(
+                System.Text.Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"] ?? "Temporary_Development_Key_32_Chars_Length!"))
+        };
+    });
+
+// ════════════════════════════════════════════════════════════════════════════
+// 8. Standard ASP.NET Core services
 // ════════════════════════════════════════════════════════════════════════════
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+builder.Services.AddAuthorization(); // Required for [Authorize] attributes
 
 // ════════════════════════════════════════════════════════════════════════════
 // Build the app
 // ════════════════════════════════════════════════════════════════════════════
 var app = builder.Build();
 
-// Auto-migrate TaurusDB on startup (creates theft_events table if missing)
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    await db.Database.MigrateAsync();
-}
+// Auto-create TaurusDB schema on startup (EnsureCreated — no migrations needed)
+var dbFactory = app.Services.GetRequiredService<IDbContextFactory<AppDbContext>>();
+await using var dbForMigration = await dbFactory.CreateDbContextAsync();
+await dbForMigration.Database.EnsureCreatedAsync();
 
 if (app.Environment.IsDevelopment())
 {
@@ -102,6 +114,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors("NextJsDashboard");
+app.UseAuthentication();
 app.UseAuthorization();
 
 // ── Route the SignalR Hub ──────────────────────────────────────────────────

@@ -13,10 +13,17 @@ public class AppDbContext : DbContext
     // Theft history audit trail (legacy - keep for backwards compat)
     public DbSet<TheftHistoryEvent> TheftHistoryEvents { get; set; }
 
-    // ── NEW: TaurusDB structured event log ──
     // Stores metadata for every confirmed (or suspected) theft event.
     // Raw waveform bytes are stored in OBS; only the URL lives here.
     public DbSet<TheftEvent> TheftEvents { get; set; }
+
+    // ── Phase 1 DbSets ──
+    public DbSet<User> Users { get; set; }
+    public DbSet<Asset> Assets { get; set; }
+    public DbSet<Incident> Incidents { get; set; }
+    public DbSet<Notification> Notifications { get; set; }
+    public DbSet<SystemConfig> SystemConfigs { get; set; }
+    public DbSet<AuditLog> AuditLogs { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
