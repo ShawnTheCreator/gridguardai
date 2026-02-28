@@ -5,7 +5,7 @@
  * If the backend is unreachable, returns null so callers fall back to mock data.
  */
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5078";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 async function request<T>(path: string, options?: RequestInit): Promise<T | null> {
     try {
@@ -39,10 +39,32 @@ export interface LoginResponse {
 }
 
 export async function apiLogin(email: string, password: string): Promise<LoginResponse | null> {
-    return request<LoginResponse>("/api/auth/login", {
-        method: "POST",
-        body: JSON.stringify({ email, password }),
-    });
+    try {
+        const res = await fetch(`${API_BASE}/api/auth/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password }),
+        });
+
+        if (!res.ok) {
+            // Backend reached, but auth failed (e.g. 401 Unauthorized)
+            return null;
+        }
+
+        return await res.json() as LoginResponse;
+    } catch (e) {
+        // Network error (backend is down / unreachable)
+        console.warn("Backend unreachable, falling back to mock login.", e);
+        return {
+            token: "mock-demo-token",
+            user: {
+                id: "demo-user",
+                email: email || "demo@gridguard.co.za",
+                name: "Demo Admin",
+                role: "Admin"
+            }
+        };
+    }
 }
 
 export async function apiGetMe() {

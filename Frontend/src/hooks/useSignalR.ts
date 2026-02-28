@@ -18,7 +18,7 @@ export interface TheftAlert {
 const HUB_URL =
     process.env.NEXT_PUBLIC_API_URL
         ? `${process.env.NEXT_PUBLIC_API_URL}/hubs/gridguard`
-        : "http://localhost:5078/hubs/gridguard";
+        : "http://localhost:5000/hubs/gridguard";
 
 export function useSignalR() {
     const [latestAlert, setLatestAlert] = useState<TheftAlert | null>(null);
