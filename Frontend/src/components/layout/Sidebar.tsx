@@ -1,12 +1,12 @@
 "use client";
 
 import React from "react";
-import { 
-  Map, 
-  Activity, 
-  Zap, 
-  LayoutDashboard, 
-  Settings, 
+import {
+  Map,
+  Activity,
+  Zap,
+  LayoutDashboard,
+  Settings,
   FolderOpen,
   Server
 } from "lucide-react";
@@ -15,11 +15,11 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
-  { label: "Mission Control", icon: Map, href: "/" },
-  { label: "Live Telemetry", icon: Activity, href: "/telemetry" },
-  { label: "Theft Alerts", icon: Zap, href: "/alerts" },
-  { label: "Grid Assets", icon: Server, href: "/assets" },
-  { label: "System Config", icon: Settings, href: "/settings" },
+  { label: "Mission Control", icon: Map, href: "/admin" },
+  { label: "Live Telemetry", icon: Activity, href: "/admin/telemetry" },
+  { label: "Theft Alerts", icon: Zap, href: "/admin/alerts" },
+  { label: "Grid Assets", icon: Server, href: "/admin/assets" },
+  { label: "System Config", icon: Settings, href: "/admin/settings" },
 ];
 
 export function Sidebar() {
@@ -51,16 +51,16 @@ export function Sidebar() {
               href={item.href}
               className={cn(
                 "flex items-center gap-3 px-3 py-2 text-sm rounded transition-colors group",
-                isActive 
-                  ? "bg-white/5 text-white" 
+                isActive
+                  ? "bg-white/5 text-white"
                   : "text-zinc-400 hover:text-white hover:bg-white/5"
               )}
             >
-              <item.icon 
+              <item.icon
                 className={cn(
                   "w-4 h-4 transition-colors",
                   isActive ? "text-acid" : "text-dim group-hover:text-acid"
-                )} 
+                )}
               />
               <span className="font-medium">{item.label}</span>
             </Link>

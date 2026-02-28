@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useId } from "react";
+import React, { useState, useEffect, useId } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -13,6 +13,7 @@ import {
   Zap,
 } from "lucide-react";
 import Link from "next/link";
+import { apiLogin } from "@/lib/api";
 
 // ── Floating Label Input ─────────────────────────────────────────────────────
 interface FloatingInputProps {
@@ -131,7 +132,18 @@ export default function LoginPage() {
   const [showPass, setShowPass] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [errors, setErrors] = useState<{ email?: string; password?: string; api?: string }>({});
+  const [isChecking, setIsChecking] = useState(true);
+
+  // Redirect if already logged in
+  useEffect(() => {
+    const token = localStorage.getItem("gridguard_token");
+    if (token) {
+      router.replace("/admin");
+    } else {
+      setIsChecking(false);
+    }
+  }, [router]);
 
   const validate = () => {
     const e: typeof errors = {};
@@ -142,14 +154,38 @@ export default function LoginPage() {
     return e;
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     const errs = validate();
     setErrors(errs);
     if (Object.keys(errs).length > 0) return;
     setIsLoading(true);
-    setTimeout(() => router.push("/admin"), 1500);
+    try {
+      const result = await apiLogin(email, password);
+      if (result) {
+        localStorage.setItem("gridguard_token", result.token);
+        localStorage.setItem("gridguard_user", JSON.stringify(result.user));
+        router.push("/admin");
+      } else {
+        setErrors({ api: "Invalid credentials. Check your email and access key." });
+        setIsLoading(false);
+      }
+    } catch {
+      setErrors({ api: "Connection error. Is the backend running?" });
+      setIsLoading(false);
+    }
   };
+
+  if (isChecking) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-8 h-8 rounded-sm bg-acid animate-spin shadow-[0_0_15px_rgba(204,255,0,0.5)]"></div>
+          <p className="text-zinc-500 font-mono text-xs uppercase tracking-widest">Verifying Session...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <motion.div

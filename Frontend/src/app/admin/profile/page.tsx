@@ -4,24 +4,50 @@ import React, { useState, useEffect } from "react";
 import { User, Shield, Key, Clock, LogOut, FileText, BadgeCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/Toast";
-import { apiLogout } from "@/lib/api";
+import { apiLogout, apiGetMe } from "@/lib/api";
 
 export default function ProfilePage() {
     const router = useRouter();
     const { showToast } = useToast();
     const [userName, setUserName] = useState("Thabo Mokoena");
     const [userRole, setUserRole] = useState("operator");
+    const [userEmail, setUserEmail] = useState("");
+    const [initials, setInitials] = useState("OP");
 
-    // Load user from localStorage on mount
+    // Load user: try API first, then fall back to localStorage
     useEffect(() => {
-        try {
-            const stored = localStorage.getItem("gridguard_user");
-            if (stored) {
-                const user = JSON.parse(stored);
-                if (user.name) setUserName(user.name);
-                if (user.role) setUserRole(user.role);
-            }
-        } catch { /* keep defaults */ }
+        (async () => {
+            try {
+                // Try live API
+                const me = await apiGetMe();
+                if (me) {
+                    setUserName(me.name);
+                    setUserRole(me.role);
+                    setUserEmail(me.email);
+                    const parts = me.name.split(" ");
+                    setInitials(parts.length >= 2
+                        ? `${parts[0][0]}${parts[1][0]}`.toUpperCase()
+                        : me.name.slice(0, 2).toUpperCase());
+                    return;
+                }
+            } catch { /* fall through to localStorage */ }
+            // localStorage fallback
+            try {
+                const stored = localStorage.getItem("gridguard_user");
+                if (stored) {
+                    const user = JSON.parse(stored);
+                    if (user.name) {
+                        setUserName(user.name);
+                        const parts = user.name.split(" ");
+                        setInitials(parts.length >= 2
+                            ? `${parts[0][0]}${parts[1][0]}`.toUpperCase()
+                            : user.name.slice(0, 2).toUpperCase());
+                    }
+                    if (user.role) setUserRole(user.role);
+                    if (user.email) setUserEmail(user.email);
+                }
+            } catch { /* keep defaults */ }
+        })();
     }, []);
 
     const handlePasswordReset = () => {

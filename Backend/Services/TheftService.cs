@@ -119,6 +119,24 @@ public class TheftService
         }
         _logger.LogInformation("[TheftService] TaurusDB record updated — status={Status}", theftEvent.Status);
 
+        // ── Step 4b: Create Incident for confirmed thefts ────────────────
+        if (theftEvent.IsTheftVerified)
+        {
+            var incident = new Incident
+            {
+                Id = $"INC-{DateTime.UtcNow:yyyyMMdd-HHmmss}-{Guid.NewGuid().ToString()[..4].ToUpper()}",
+                Time = DateTime.UtcNow.ToString("HH:mm"),
+                Location = $"Pole {telemetry.pole_id}",
+                Type = "AI Detection",
+                Status = "active",
+                Confidence = (int)Math.Round(verdict.Confidence * 100),
+                CreatedAt = DateTime.UtcNow
+            };
+            db.Incidents.Add(incident);
+            await db.SaveChangesAsync(ct);
+            _logger.LogInformation("[TheftService] Incident created → {Id}", incident.Id);
+        }
+
         // ── Step 5: Broadcast to Next.js dashboard via SignalR ───────────
         var payload = new GridGuardAlertPayload
         {
