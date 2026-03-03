@@ -96,13 +96,14 @@ function FloatingInput({
 }
 
 // ── Social Button ────────────────────────────────────────────────────────────
-function SocialButton({ label, logo }: { label: string; logo: React.ReactNode }) {
+function SocialButton({ label, logo, onClick }: { label: string; logo: React.ReactNode; onClick: () => void }) {
   return (
     <motion.button
       type="button"
       whileHover={{ scale: 1.02, borderColor: "rgba(204,255,0,0.3)" }}
       whileTap={{ scale: 0.97 }}
       className="flex-1 flex items-center justify-center gap-2.5 py-2.5 border border-border rounded-lg text-xs font-mono text-zinc-400 hover:text-white transition-colors bg-panel/60"
+      onClick={onClick}
     >
       {logo}
       {label}
@@ -214,8 +215,64 @@ export default function LoginPage() {
 
       {/* Social Auth */}
       <div className="flex gap-3">
-        <SocialButton label="Google" logo={<GoogleLogo />} />
-        <SocialButton label="Huawei ID" logo={<HuaweiLogo />} />
+        <SocialButton
+          label="Google"
+          logo={<GoogleLogo />}
+          onClick={async () => {
+            const verifier = [...crypto.getRandomValues(new Uint8Array(32))]
+              .map(b => ("0" + b.toString(16)).slice(-2))
+              .join("");
+            const enc = new TextEncoder();
+            const data = enc.encode(verifier);
+            const buf = await crypto.subtle.digest("SHA-256", data);
+            const hashArray = Array.from(new Uint8Array(buf));
+            const challenge = btoa(String.fromCharCode(...hashArray))
+              .replace(/\+/g, "-")
+              .replace(/\//g, "_")
+              .replace(/=+$/, "");
+            sessionStorage.setItem("gg_pkce_verifier", verifier);
+            const params = new URLSearchParams({
+              client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "",
+              redirect_uri: `${window.location.origin}/auth/google`,
+              response_type: "code",
+              scope: "openid email profile",
+              code_challenge: challenge,
+              code_challenge_method: "S256",
+              access_type: "offline",
+              include_granted_scopes: "true",
+              prompt: "select_account"
+            });
+            window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+          }}
+        />
+        <SocialButton
+          label="Huawei ID"
+          logo={<HuaweiLogo />}
+          onClick={async () => {
+            const verifier = [...crypto.getRandomValues(new Uint8Array(32))]
+              .map(b => ("0" + b.toString(16)).slice(-2))
+              .join("");
+            const enc = new TextEncoder();
+            const data = enc.encode(verifier);
+            const buf = await crypto.subtle.digest("SHA-256", data);
+            const hashArray = Array.from(new Uint8Array(buf));
+            const challenge = btoa(String.fromCharCode(...hashArray))
+              .replace(/\+/g, "-")
+              .replace(/\//g, "_")
+              .replace(/=+$/, "");
+            sessionStorage.setItem("gg_pkce_verifier_huawei", verifier);
+            const authUrl = process.env.NEXT_PUBLIC_HUAWEI_AUTH_URL || "https://oauth-login.cloud.huawei.com/oauth2/v3/authorize";
+            const params = new URLSearchParams({
+              client_id: process.env.NEXT_PUBLIC_HUAWEI_CLIENT_ID || "",
+              redirect_uri: `${window.location.origin}/auth/huawei`,
+              response_type: "code",
+              scope: "openid email profile",
+              code_challenge: challenge,
+              code_challenge_method: "S256"
+            });
+            window.location.href = `${authUrl}?${params.toString()}`;
+          }}
+        />
       </div>
 
       {/* Divider */}

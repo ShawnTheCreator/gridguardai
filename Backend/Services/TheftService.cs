@@ -196,21 +196,10 @@ public class TheftService
 
             if ((int)putResponse.StatusCode is >= 200 and < 300)
             {
-                // ── Option A: return public URL (if bucket has public-read ACL) ──
-                var publicUrl = $"{endpoint}/{bucketName}/{Uri.EscapeDataString(fileName)}";
-
-                // ── Option B: generate a temporary pre-signed URL (1 hour TTL) ──
-                // Uncomment below to use pre-signed URLs instead of public URLs.
-                //
-                // var signedRequest = new CreateTemporarySignatureRequest
-                // {
-                //     BucketName = bucketName,
-                //     ObjectKey = fileName,
-                //     Method = HttpVerb.GET,
-                //     Expires = 3600  // seconds
-                // };
-                // var signedResponse = obsClient.CreateTemporarySignature(signedRequest);
-                // return signedResponse.SignedUrl;
+                var host = endpoint.StartsWith("http", StringComparison.OrdinalIgnoreCase)
+                    ? endpoint
+                    : $"https://{endpoint}";
+                var publicUrl = $"{host}/{bucketName}/{Uri.EscapeDataString(fileName)}";
 
                 _logger.LogInformation("[OBS] Upload success: {Url}", publicUrl);
                 return publicUrl;
