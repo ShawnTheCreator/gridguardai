@@ -1,0 +1,39 @@
+GridGuard AI — Showcase Speech
+
+Honourable judges, esteemed partners, and fellow builders —
+
+South Africa loses R23 billion every year to electricity theft. Illegal “tap-offs” don’t just drain municipal revenue; they overload transformers, causing explosions that cost between R200,000 and R500,000 each to replace. Current metering can’t see theft that bypasses the meter entirely, and sending crews into high-theft zones puts technicians at risk. This is the gap GridGuard AI closes.
+
+GridGuard AI is the scalpel your grid deserves. Instead of blunt shutdowns that punish entire neighbourhoods, we detect and surgically isolate only the illegal line — in under 300 milliseconds.
+
+How it works:
+1) Energy Balancing at the pole: we continuously compute I_pole − Σ I_meters and flag anomalies in real time.
+2) AI Validation: a CNN–LSTM model on Huawei ModelArts analyzes vibration and electrical signatures to confirm theft with 93–99% confidence.
+3) Scalpel Isolation: via Huawei IoTDA, a targeted MQTT command disconnects only the unauthorized bypass. Paying customers stay powered.
+4) Live Operations: the Next.js 14 dashboard updates instantly using SignalR from our .NET 9 backend, streaming telemetry and alerts to field teams and control rooms.
+
+Architecture:
+• Backend: .NET 9 orchestrates telemetry, AI calls, and control flows
+• Database: TimescaleDB stores time-series grid telemetry
+• IoT: Huawei IoTDA provides secure MQTT messaging to relays
+• AI: Huawei ModelArts runs the theft-validation pipeline
+• Frontend: Next.js 14 delivers a real-time operational dashboard
+
+Why it matters:
+• Revenue Protection: detecting bypasses restores billable energy at the node level
+• Safety: targeted isolation prevents transformer overloads and dangerous faults
+• Precision: sub-second response minimizes customer impact and service calls
+• Accountability: forensic traces and audit reports strengthen prosecution and deterrence
+
+What we demonstrate today:
+• A pole reports abnormal current; GridGuard AI flags an anomaly
+• ModelArts confirms theft with high confidence
+• IoTDA issues a precision disconnect — only the illegal leg trips
+• The dashboard turns the affected house Red in real-time, with waveform evidence attached
+
+Impact and scale:
+• Designed for municipal rollouts: secure, observable, and cloud-ready
+• Built for operations: endpoints for telemetry, control, and savings estimates in ZAR
+• Extensible: pluggable AI and device integrations for diverse grid topologies
+
+In a market losing R23 billion annually, every accurate isolation matters. GridGuard AI turns intelligence into action — cutting losses, protecting infrastructure, and keeping honest customers powered. Thank you.
