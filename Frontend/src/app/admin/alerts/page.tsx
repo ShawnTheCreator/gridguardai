@@ -141,49 +141,17 @@ export default function AlertsPage() {
 
                                 {/* Visual Evidence Grid */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {/* Camera Feed or Uploaded Evidence */}
+                                    {/* Fake Camera Feed */}
                                     <div className="space-y-2">
-                                        <div className="text-[10px] uppercase text-zinc-500 font-mono">
-                                            {selectedIncident.id === "INC-2026-001" ? "Meter Room Evidence: " + selectedIncident.id : "Pole Camera #404 Feed"}
-                                        </div>
+                                        <div className="text-[10px] uppercase text-zinc-500 font-mono">Pole Camera #404 Feed</div>
                                         <div className="bg-black border border-zinc-800 rounded h-48 flex items-center justify-center relative overflow-hidden group">
-                                            {/* 
-                                              * Logic: If INC-2026-001, try to show the meter room video/image.
-                                              * For the pitch, place meter_room.mp4 or meter_room.jpg in /public/evidence/
-                                              */}
-                                            {selectedIncident.id === "INC-2026-001" ? (
-                                                <div className="absolute inset-0 w-full h-full">
-                                                    {/* Fallback to mock text if files are missing, but code is ready for real assets */}
-                                                    <video 
-                                                        src="/evidence/meter_room.mp4" 
-                                                        autoPlay 
-                                                        loop 
-                                                        muted 
-                                                        className="w-full h-full object-cover"
-                                                        poster="/evidence/meter_room.jpg"
-                                                        onError={(e) => {
-                                                            const target = e.target as HTMLVideoElement;
-                                                            target.style.display = 'none';
-                                                            const parent = target.parentElement;
-                                                            if (parent) {
-                                                                const fallback = document.createElement('div');
-                                                                fallback.className = "absolute inset-0 flex items-center justify-center bg-zinc-900";
-                                                                fallback.innerHTML = '<span class="text-zinc-700 text-xs font-mono uppercase">Evidence Ready (Awaiting Upload)</span>';
-                                                                parent.appendChild(fallback);
-                                                            }
-                                                        }}
-                                                    />
-                                                </div>
-                                            ) : (
-                                                <div className="absolute inset-0 bg-zinc-900 flex items-center justify-center">
-                                                    <span className="text-zinc-700 text-xs font-mono">NO SIGNAL // IR MODE</span>
-                                                </div>
-                                            )}
-                                            
-                                            {/* Scanline effect overlay */}
-                                            <div className="absolute inset-0 bg-linear-to-b from-transparent via-acid/5 to-transparent h-full w-full animate-scan pointer-events-none" />
-                                            <div className="absolute bottom-2 left-2 px-2 py-1 bg-black/80 text-acid text-[10px] font-mono border border-acid/20 rounded z-10">
-                                                {selectedIncident.id === "INC-2026-001" ? "FORENSIC CAPTURE" : "MOTION DETECTED: 10:42 AM"}
+                                            <div className="absolute inset-0 bg-zinc-900 flex items-center justify-center">
+                                                <span className="text-zinc-700 text-xs font-mono">NO SIGNAL // IR MODE</span>
+                                            </div>
+                                            {/* Scanline effect */}
+                                            <div className="absolute inset-0 bg-linear-to-b from-transparent via-acid/5 to-transparent h-full w-full animate-scan" />
+                                            <div className="absolute bottom-2 left-2 px-2 py-1 bg-black/80 text-acid text-[10px] font-mono border border-acid/20 rounded">
+                                                MOTION DETECTED: 10:42 AM
                                             </div>
                                         </div>
                                     </div>
