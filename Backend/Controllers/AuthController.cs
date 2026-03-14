@@ -62,7 +62,9 @@ public class AuthController : ControllerBase
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new { error = "Internal Login Error", detail = ex.Message });
+            Console.WriteLine($"LOGIN CRASH: {ex.Message}");
+            if (ex.InnerException != null) Console.WriteLine($"INNER: {ex.InnerException.Message}");
+            return StatusCode(500, new { error = "Internal Login Error", detail = ex.Message, inner = ex.InnerException?.Message });
         }
     }
 
