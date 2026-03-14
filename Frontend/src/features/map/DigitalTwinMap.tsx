@@ -32,11 +32,11 @@ export default function DigitalTwinMap() {
 
   return (
     <div className="relative w-full h-150 bg-void rounded-lg overflow-hidden border border-acid/20 group">
-      {/* 3D Visual Layer (Using a high-fidelity iframe simulation for 3D Street View) */}
-      <div className="absolute inset-0 opacity-40 grayscale contrast-125 mix-blend-screen pointer-events-none">
+      {/* 3D Visual Layer (Interactive 3D Simulation) */}
+      <div className="absolute inset-0 opacity-60 grayscale contrast-125 mix-blend-screen">
         <iframe 
-          src="https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d11458.21415614211!2d28.0473!3d-26.2041!2m3!1f0!2f39.2!3f0!3m2!1i1024!2i768!4f35!5e1!3m2!1sen!2sza!4v1710425000000!5m2!1sen!2sza"
-          className="w-full h-full border-0 scale-150"
+          src="https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d11458.21415614211!2d28.0473!3d-26.2041!2m3!1f0!2f39.2!3f0!3m2!1i1024!2i768!4f35!5e1!3m2!1sen!2sza!4v1710425000000!5m2!1sen!2sza&maptype=satellite&view=3d"
+          className="w-full h-full border-0 scale-110"
           allowFullScreen
           loading="lazy"
         />
