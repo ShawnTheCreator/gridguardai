@@ -9,8 +9,16 @@ Env.Load();
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddEnvironmentVariables();
 
-var taurusConnectionString = builder.Configuration.GetConnectionString("TaurusDB");
-var serverVersion = new MySqlServerVersion(new Version(8, 0, 22)); // TaurusDB is MySQL 8.0 compatible
+var taurusConnectionString = builder.Configuration.GetConnectionString("TaurusDB") 
+    ?? builder.Configuration["TaurusDB"] 
+    ?? builder.Configuration["ConnectionStrings__TaurusDB"];
+
+if (string.IsNullOrEmpty(taurusConnectionString))
+{
+    Console.WriteLine("CRITICAL: TaurusDB Connection String is missing!");
+}
+
+var serverVersion = new MySqlServerVersion(new Version(8, 0, 22)); 
 
 builder.Services.AddDbContextFactory<AppDbContext>(options =>
     options.UseMySql(
@@ -47,10 +55,11 @@ builder.Services.AddCors(options =>
     options.AddPolicy("NextJsDashboard", policy =>
     {
         policy
-            .WithOrigins(
-                "http://localhost:3000",  
-                "https://gridguardai.vercel.app"    
-            )
+            .SetIsOriginAllowed(origin => 
+            {
+                var uri = new Uri(origin);
+                return uri.Host.Contains("localhost") || uri.Host.Contains("vercel.app");
+            })
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();           
@@ -85,9 +94,16 @@ builder.Services.AddAuthorization(); // Required for [Authorize] attributes
 var app = builder.Build();
 
 
-var dbFactory = app.Services.GetRequiredService<IDbContextFactory<AppDbContext>>();
-await using var dbForMigration = await dbFactory.CreateDbContextAsync();
-await dbForMigration.Database.EnsureCreatedAsync();
+try
+{
+    var dbFactory = app.Services.GetRequiredService<IDbContextFactory<AppDbContext>>();
+    await using var dbForMigration = await dbFactory.CreateDbContextAsync();
+    await dbForMigration.Database.EnsureCreatedAsync();
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"DB SEEDING FAILED: {ex.Message}");
+}
 
 if (app.Environment.IsDevelopment())
 {

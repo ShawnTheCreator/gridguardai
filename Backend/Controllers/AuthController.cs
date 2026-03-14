@@ -37,26 +37,33 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
-
-        if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
+        try
         {
-            return Unauthorized(new { error = "Invalid credentials" });
-        }
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
 
-        var token = _jwtService.GenerateToken(user);
-
-        return Ok(new
-        {
-            token,
-            user = new
+            if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
             {
-                id = user.Id,
-                email = user.Email,
-                name = user.Name,
-                role = user.Role
+                return Unauthorized(new { error = "Invalid credentials" });
             }
-        });
+
+            var token = _jwtService.GenerateToken(user);
+
+            return Ok(new
+            {
+                token,
+                user = new
+                {
+                    id = user.Id,
+                    email = user.Email,
+                    name = user.Name,
+                    role = user.Role
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { error = "Internal Login Error", detail = ex.Message });
+        }
     }
 
     
