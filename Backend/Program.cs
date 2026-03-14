@@ -13,6 +13,8 @@ var taurusConnectionString = builder.Configuration.GetConnectionString("TaurusDB
     ?? builder.Configuration["TaurusDB"] 
     ?? builder.Configuration["ConnectionStrings__TaurusDB"];
 
+Console.WriteLine($"[STARTUP] Using Connection String: {(string.IsNullOrEmpty(taurusConnectionString) ? "NULL" : "EXISTS (Masked Password)")}");
+
 if (string.IsNullOrEmpty(taurusConnectionString))
 {
     Console.WriteLine("CRITICAL: TaurusDB Connection String is missing!");
@@ -21,13 +23,18 @@ if (string.IsNullOrEmpty(taurusConnectionString))
 var serverVersion = new MySqlServerVersion(new Version(8, 0, 22)); 
 
 builder.Services.AddDbContextFactory<AppDbContext>(options =>
-    options.UseMySql(
-        taurusConnectionString,
-        serverVersion,
-        mySqlOptions => mySqlOptions
-            .EnableRetryOnFailure(maxRetryCount: 3)
-            .CommandTimeout(30)
-    ));
+{
+    if (!string.IsNullOrEmpty(taurusConnectionString))
+    {
+        options.UseMySql(
+            taurusConnectionString,
+            serverVersion,
+            mySqlOptions => mySqlOptions
+                .EnableRetryOnFailure(maxRetryCount: 3)
+                .CommandTimeout(30)
+        );
+    }
+});
 
 
 builder.Services.AddScoped(sp => 
