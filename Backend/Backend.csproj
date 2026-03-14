@@ -44,8 +44,12 @@
   
   <ItemGroup>
     <Compile Remove="HashGen\**" />
+    <Compile Remove="ObsTest\**" />
     <Content Remove="HashGen\**" />
+    <Content Remove="ObsTest\**" />
     <EmbeddedResource Remove="HashGen\**" />
+    <EmbeddedResource Remove="ObsTest\**" />
     <None Remove="HashGen\**" />
+    <None Remove="ObsTest\**" />
   </ItemGroup>
 </Project>
