@@ -49,7 +49,7 @@ builder.Services.AddCors(options =>
         policy
             .WithOrigins(
                 "http://localhost:3000",  
-                "https://gridguardai.vercel.app/"    
+                "https://gridguardai.vercel.app"    
             )
             .AllowAnyHeader()
             .AllowAnyMethod()
