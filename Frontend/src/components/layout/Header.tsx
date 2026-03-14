@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { Bell, Search, User, LogOut, Menu, X } from "lucide-react";
+import { Bell, Search, User, LogOut, Menu, X, Palette } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { MOCK_ASSETS } from "@/lib/data"; // Ensure you have created lib/data.ts
@@ -15,7 +15,20 @@ export function Header() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
   const [searchResults, setSearchResults] = useState<typeof MOCK_ASSETS>([]);
+
+  const themes = [
+    { id: "acid", label: "Tactical (Acid)", color: "bg-[#ccff00]" },
+    { id: "security", label: "Alert (Crimson)", color: "bg-[#ff3e3e]" },
+    { id: "satellite", label: "Satellite (Cyan)", color: "bg-[#00f2ff]" },
+  ];
+
+  const handleThemeChange = (id: string) => {
+    showToast(`Visual override: ${id.toUpperCase()} protocol enabled`, "info");
+    setIsThemeMenuOpen(false);
+    // In a real implementation, this would update a CSS variable or context
+  };
 
   // Search Logic
   useEffect(() => {
@@ -97,6 +110,40 @@ export function Header() {
 
       {/* Right Actions */}
       <div className="flex items-center gap-3">
+
+        {/* Theme Switcher */}
+        <div className="relative">
+          <button
+            onClick={() => { setIsThemeMenuOpen(!isThemeMenuOpen); setIsNotifOpen(false); setIsUserMenuOpen(false); }}
+            className="w-8 h-8 flex items-center justify-center rounded hover:bg-white/5 text-zinc-400 hover:text-white transition-colors"
+            title="UI Theme Override"
+          >
+            <Palette className="w-4 h-4" />
+          </button>
+
+          {isThemeMenuOpen && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setIsThemeMenuOpen(false)}></div>
+              <div className="absolute right-0 top-full mt-2 w-48 bg-surface border border-border rounded shadow-xl z-50 py-1 animate-in fade-in zoom-in-95 duration-200">
+                <div className="px-4 py-2 border-b border-white/5">
+                  <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">Theme Protocol</span>
+                </div>
+                {themes.map((theme) => (
+                  <button
+                    key={theme.id}
+                    onClick={() => handleThemeChange(theme.id)}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-zinc-400 hover:text-white hover:bg-white/5 transition-colors"
+                  >
+                    <div className={`w-2 h-2 rounded-full ${theme.color}`} />
+                    {theme.label}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+
+        <div className="h-5 w-px bg-border mx-1"></div>
 
         {/* Notifications Dropdown */}
         <div className="relative">

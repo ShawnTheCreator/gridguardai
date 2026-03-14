@@ -30,31 +30,48 @@ function MapSkeleton({ label }: { label: string }) {
 
 export default function MapLoader(props: any) {
   const [viewMode, setViewMode] = useState<"2d" | "3d">("2d");
+  const [isColorMode, setIsColorMode] = useState(false);
 
   return (
     <div className="space-y-4">
       {/* View Switcher */}
       <div className="flex items-center justify-between">
-        <div className="flex bg-void/50 border border-border p-1 rounded-lg">
+        <div className="flex items-center gap-4">
+          <div className="flex bg-void/50 border border-border p-1 rounded-lg">
+            <button
+              onClick={() => setViewMode("2d")}
+              className={cn(
+                "flex items-center gap-2 px-4 py-1.5 rounded-md text-[10px] font-mono uppercase tracking-wider transition-all",
+                viewMode === "2d" ? "bg-acid text-void font-bold shadow-[0_0_10px_#ccff0055]" : "text-zinc-500 hover:text-zinc-300"
+              )}
+            >
+              <MapIcon className="w-3 h-3" />
+              2D Tactical
+            </button>
+            <button
+              onClick={() => setViewMode("3d")}
+              className={cn(
+                "flex items-center gap-2 px-4 py-1.5 rounded-md text-[10px] font-mono uppercase tracking-wider transition-all",
+                viewMode === "3d" ? "bg-acid text-void font-bold shadow-[0_0_10px_#ccff0055]" : "text-zinc-500 hover:text-zinc-300"
+              )}
+            >
+              <Box className="w-3 h-3" />
+              3D Digital Twin
+            </button>
+          </div>
+
+          {/* Color/Grayscale Toggle */}
           <button
-            onClick={() => setViewMode("2d")}
+            onClick={() => setIsColorMode(!isColorMode)}
             className={cn(
-              "flex items-center gap-2 px-4 py-1.5 rounded-md text-[10px] font-mono uppercase tracking-wider transition-all",
-              viewMode === "2d" ? "bg-acid text-void font-bold shadow-[0_0_10px_#ccff0055]" : "text-zinc-500 hover:text-zinc-300"
+              "flex items-center gap-2 px-3 py-1.5 rounded-lg border text-[10px] font-mono uppercase tracking-widest transition-all",
+              isColorMode 
+                ? "bg-blue-500/10 border-blue-500/50 text-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.2)]" 
+                : "bg-void/50 border-border text-zinc-500 hover:text-zinc-300"
             )}
           >
-            <MapIcon className="w-3 h-3" />
-            2D Tactical
-          </button>
-          <button
-            onClick={() => setViewMode("3d")}
-            className={cn(
-              "flex items-center gap-2 px-4 py-1.5 rounded-md text-[10px] font-mono uppercase tracking-wider transition-all",
-              viewMode === "3d" ? "bg-acid text-void font-bold shadow-[0_0_10px_#ccff0055]" : "text-zinc-500 hover:text-zinc-300"
-            )}
-          >
-            <Box className="w-3 h-3" />
-            3D Digital Twin
+            <Layers className="w-3 h-3" />
+            {isColorMode ? "Realistic Color" : "Tactical Mono"}
           </button>
         </div>
 
@@ -76,9 +93,9 @@ export default function MapLoader(props: any) {
       <div className="relative group">
         <div className="absolute inset-0 bg-acid/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none rounded-lg" />
         {viewMode === "2d" ? (
-          <TacticalMap {...props} />
+          <TacticalMap {...props} isColorMode={isColorMode} />
         ) : (
-          <DigitalTwinMap {...props} />
+          <DigitalTwinMap {...props} isColorMode={isColorMode} />
         )}
       </div>
     </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Activity, Zap, Waves, Box } from "lucide-react";
+import { Activity, Zap, Waves, Box, Cpu, Wifi, Thermometer, ShieldCheck } from "lucide-react";
 import { HarmonicChart } from "@/features/monitor/HarmonicChart";
 import { GhostLoadChart } from "@/features/monitor/GhostLoadChart";
 import { apiGetRecentTelemetry } from "@/lib/api"; // Kept for Phase 2 readiness
@@ -103,6 +103,69 @@ export default function TelemetryPage() {
             <h2 className="text-sm font-bold text-white uppercase">Loss Detection</h2>
           </div>
           <GhostLoadChart />
+        </div>
+      </div>
+
+      {/* Hardware Diagnostics Section */}
+      <div className="bg-panel border border-border rounded-xl p-6 relative overflow-hidden group">
+        <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+          <Cpu className="w-32 h-32 text-white" />
+        </div>
+        
+        <div className="flex flex-col md:flex-row gap-8 items-center">
+          <div className="w-full md:w-1/3 space-y-4">
+            <div className="flex items-center gap-2 text-acid">
+              <Cpu className="w-5 h-5" />
+              <h2 className="text-lg font-bold uppercase tracking-tight">ESP32 Hardware Node</h2>
+            </div>
+            <p className="text-xs text-zinc-500 font-mono leading-relaxed">
+              Live heartbeat from the edge sensing device. 
+              Encrypted MQTT tunnel active via Huawei Cloud IoT.
+            </p>
+            <div className="pt-4 flex gap-3">
+              <div className="px-3 py-1 bg-success/10 text-success border border-success/20 rounded text-[10px] font-mono flex items-center gap-1.5">
+                <ShieldCheck className="w-3 h-3" /> SECURE
+              </div>
+              <div className="px-3 py-1 bg-acid/10 text-acid border border-acid/20 rounded text-[10px] font-mono">
+                v2.4.0-PROD
+              </div>
+            </div>
+          </div>
+
+          <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
+            <div className="bg-void/50 border border-border p-4 rounded-lg">
+              <div className="text-[10px] font-mono text-zinc-500 uppercase mb-2 flex justify-between">
+                <span>Signal Strength</span>
+                <Wifi className="w-3 h-3 text-acid" />
+              </div>
+              <div className="text-xl font-bold text-white font-mono">-64 <span className="text-[10px] text-zinc-600">dBm</span></div>
+              <div className="mt-2 w-full h-1 bg-white/5 rounded-full overflow-hidden">
+                <div className="h-full bg-acid w-3/4" />
+              </div>
+            </div>
+            
+            <div className="bg-void/50 border border-border p-4 rounded-lg">
+              <div className="text-[10px] font-mono text-zinc-500 uppercase mb-2 flex justify-between">
+                <span>CPU Temp</span>
+                <Thermometer className="w-3 h-3 text-orange-500" />
+              </div>
+              <div className="text-xl font-bold text-white font-mono">42.8 <span className="text-[10px] text-zinc-600">°C</span></div>
+              <div className="mt-2 w-full h-1 bg-white/5 rounded-full overflow-hidden">
+                <div className="h-full bg-orange-500 w-2/5" />
+              </div>
+            </div>
+
+            <div className="bg-void/50 border border-border p-4 rounded-lg">
+              <div className="text-[10px] font-mono text-zinc-500 uppercase mb-2 flex justify-between">
+                <span>Buffer Health</span>
+                <Activity className="w-3 h-3 text-blue-500" />
+              </div>
+              <div className="text-xl font-bold text-white font-mono">99.2 <span className="text-[10px] text-zinc-600">%</span></div>
+              <div className="mt-2 w-full h-1 bg-white/5 rounded-full overflow-hidden">
+                <div className="h-full bg-blue-500 w-[99%]" />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect } from "react";
+import { cn } from "@/lib/utils";
 import { MapContainer, TileLayer, CircleMarker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
@@ -8,6 +9,7 @@ import L from "leaflet";
 // Define the shape of our props
 interface TacticalMapProps {
   onPoleClick: (id: string) => void;
+  isColorMode?: boolean;
 }
 
 const GRID_NODES = [
@@ -23,7 +25,7 @@ const STATUS_COLORS = {
   active_theft: "#ff3300"
 };
 
-export default function TacticalMap({ onPoleClick }: TacticalMapProps) {
+export default function TacticalMap({ onPoleClick, isColorMode = false }: TacticalMapProps) {
   
   useEffect(() => {
     // Leaflet icon fix for Next.js
@@ -56,7 +58,10 @@ export default function TacticalMap({ onPoleClick }: TacticalMapProps) {
       <MapContainer
         center={[-26.17, 28.23]}
         zoom={13}
-        className="w-full h-full grayscale-[0.8] contrast-[1.2] invert-[0.9] hue-rotate-180"
+        className={cn(
+          "w-full h-full transition-all duration-700",
+          !isColorMode && "grayscale-[0.8] contrast-[1.2] invert-[0.9] hue-rotate-180"
+        )}
         zoomControl={false}
       >
         <TileLayer

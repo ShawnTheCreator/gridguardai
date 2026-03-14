@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { cn } from "@/lib/utils";
 import { 
   Box, 
   Wind, 
@@ -8,7 +9,10 @@ import {
   Target, 
   Activity, 
   ShieldAlert,
-  Satellite
+  Satellite,
+  Cpu,
+  Wifi,
+  Thermometer
 } from "lucide-react";
 
 /**
@@ -20,7 +24,7 @@ import {
  * 3. Grid Infrastructure Assets in 3D space
  */
 
-export default function DigitalTwinMap() {
+export default function DigitalTwinMap({ isColorMode = false }: { isColorMode?: boolean }) {
   const [bootSequence, setBootSequence] = useState(0);
 
   useEffect(() => {
@@ -33,9 +37,12 @@ export default function DigitalTwinMap() {
   return (
     <div className="relative w-full h-150 bg-void rounded-lg overflow-hidden border border-acid/20 group">
       {/* 3D Visual Layer (Interactive 3D Simulation) */}
-      <div className="absolute inset-0 opacity-60 grayscale contrast-125 mix-blend-screen">
+      <div className={cn(
+        "absolute inset-0 transition-all duration-700",
+        isColorMode ? "opacity-100" : "opacity-60 grayscale contrast-125 mix-blend-screen"
+      )}>
         <iframe 
-          src="https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d11458.21415614211!2d28.0473!3d-26.2041!2m3!1f0!2f39.2!3f0!3m2!1i1024!2i768!4f35!5e1!3m2!1sen!2sza!4v1710425000000!5m2!1sen!2sza&maptype=satellite&view=3d"
+          src={`https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d11458.21415614211!2d28.0473!3d-26.2041!2m3!1f0!2f39.2!3f0!3m2!1i1024!2i768!4f35!5e1!3m2!1sen!2sza!4v1710425000000!5m2!1sen!2sza&maptype=${isColorMode ? 'satellite' : 'satellite'}&view=3d`}
           className="w-full h-full border-0 scale-110"
           allowFullScreen
           loading="lazy"
@@ -134,8 +141,52 @@ export default function DigitalTwinMap() {
         </div>
       </div>
 
-      {/* HUD: Right Side - Asset Scanning */}
-      <div className="absolute top-6 right-6 z-10 w-64 space-y-4">
+      {/* HUD: Right Side - Asset Scanning & Hardware */}
+      <div className="absolute top-6 right-6 z-10 w-64 space-y-4 text-white">
+        {/* ESP32 Hardware Diagnostics */}
+        <div className="bg-void/90 backdrop-blur-xl border border-blue-500/30 p-4 rounded-lg shadow-[0_0_15px_rgba(59,130,246,0.1)]">
+          <div className="flex justify-between items-center mb-3">
+            <div className="text-[10px] font-mono text-blue-400 uppercase tracking-widest flex items-center gap-2 font-bold">
+              <Cpu className="w-3.5 h-3.5" />
+              ESP32 Node v2
+            </div>
+            <div className="flex gap-1">
+              <div className="w-1 h-1 rounded-full bg-blue-500 animate-ping" />
+              <div className="w-1 h-1 rounded-full bg-blue-500" />
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            <div className="bg-white/5 p-2 rounded border border-white/5">
+              <div className="text-[8px] text-zinc-500 uppercase font-mono mb-1">Signal</div>
+              <div className="flex items-center gap-1.5">
+                <Wifi className="w-3 h-3 text-success" />
+                <span className="text-xs font-mono">-64dBm</span>
+              </div>
+            </div>
+            <div className="bg-white/5 p-2 rounded border border-white/5">
+              <div className="text-[8px] text-zinc-500 uppercase font-mono mb-1">Temp</div>
+              <div className="flex items-center gap-1.5">
+                <Thermometer className="w-3 h-3 text-orange-400" />
+                <span className="text-xs font-mono">42°C</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex justify-between text-[9px] font-mono uppercase">
+              <span className="text-zinc-500">MQTT Queue</span>
+              <span className="text-blue-400">0 msgs</span>
+            </div>
+            <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+              <div className="h-full bg-blue-500 w-1/5" />
+            </div>
+            <div className="text-[8px] font-mono text-zinc-600 text-center italic mt-1">
+              Firmware: GG-WIFI-AX-1.4.2
+            </div>
+          </div>
+        </div>
+
         <div className="bg-void/80 backdrop-blur-xl border border-danger/30 p-4 rounded-lg border-l-4 border-l-danger">
           <div className="flex items-center gap-2 mb-2 text-danger">
             <ShieldAlert className="w-4 h-4" />
