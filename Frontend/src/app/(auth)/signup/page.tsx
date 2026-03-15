@@ -355,10 +355,10 @@ export default function SignupPage() {
                 {/* Submit */}
                 <motion.button
                     type="submit"
-                    disabled={isLoading}
-                    whileHover={!isLoading ? { scale: 1.02, boxShadow: "0 0 30px rgba(204,255,0,0.3)" } : {}}
-                    whileTap={!isLoading ? { scale: 0.98 } : {}}
-                    className="w-full bg-acid text-black font-bold uppercase tracking-widest py-3.5 rounded-xl hover:bg-white transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-70"
+                    disabled={isLoading || !captchaToken}
+                    whileHover={!isLoading && captchaToken ? { scale: 1.02, boxShadow: "0 0 30px rgba(204,255,0,0.3)" } : {}}
+                    whileTap={!isLoading && captchaToken ? { scale: 0.98 } : {}}
+                    className="w-full bg-acid text-black font-bold uppercase tracking-widest py-3.5 rounded-xl hover:bg-white transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-30 disabled:grayscale disabled:cursor-not-allowed"
                 >
                     {isLoading ? (
                         <motion.span className="font-mono" animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 1, repeat: Infinity }}>

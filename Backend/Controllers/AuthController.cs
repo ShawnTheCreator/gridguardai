@@ -48,7 +48,11 @@ public class AuthController : ControllerBase
         if (string.IsNullOrEmpty(token)) return false;
 
         var secret = _configuration["RECAPTCHA_SECRET_KEY"];
-        if (string.IsNullOrEmpty(secret)) return true; // Skip if not configured
+        if (string.IsNullOrEmpty(secret)) 
+        {
+            Console.WriteLine("CRITICAL: RECAPTCHA_SECRET_KEY is not configured. Failing verification for security.");
+            return false; 
+        }
 
         using var client = new HttpClient();
         var response = await client.PostAsync($"https://www.google.com/recaptcha/api/siteverify?secret={secret}&response={token}", null);
