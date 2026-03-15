@@ -331,16 +331,22 @@ export default function SignupPage() {
                 </div>
 
                 {/* Captcha */}
-                <div className="flex justify-center py-2">
-                    <ReCAPTCHA
-                        ref={recaptchaRef}
-                        theme="dark"
-                        sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || ""}
-                        onChange={(token) => {
-                            setCaptchaToken(token);
-                            setErrors(prev => ({ ...prev, captcha: undefined }));
-                        }}
-                    />
+                <div className="flex justify-center py-2 min-h-[78px]">
+                    {process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY ? (
+                        <ReCAPTCHA
+                            ref={recaptchaRef}
+                            theme="dark"
+                            sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}
+                            onChange={(token) => {
+                                setCaptchaToken(token);
+                                setErrors(prev => ({ ...prev, captcha: undefined }));
+                            }}
+                        />
+                    ) : (
+                        <div className="text-[10px] font-mono text-orange-500 bg-orange-500/10 border border-orange-500/20 p-3 rounded text-center max-w-[300px]">
+                            CRITICAL: reCAPTCHA Site Key missing in environment variables.
+                        </div>
+                    )}
                 </div>
                 {errors.captcha && (
                     <p className="text-[10px] font-mono text-danger text-center -mt-1">{errors.captcha}</p>
