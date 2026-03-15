@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState, useEffect, useId } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import ReCAPTCHA from "react-google-recaptcha";
 import {
   ShieldCheck,
   Lock,
@@ -135,8 +136,10 @@ export default function LoginPage() {
   const [showPass, setShowPass] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState<{ email?: string; password?: string; api?: string }>({});
+  const [errors, setErrors] = useState<{ email?: string; password?: string; api?: string; captcha?: string }>({});
   const [isChecking, setIsChecking] = useState(true);
+  const recaptchaRef = useRef<ReCAPTCHA>(null);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
   // Redirect if already logged in
   useEffect(() => {
@@ -160,11 +163,16 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     const errs = validate();
+    
+    if (!captchaToken) {
+      errs.captcha = "Please complete the security check";
+    }
+
     setErrors(errs);
     if (Object.keys(errs).length > 0) return;
     setIsLoading(true);
     try {
-      const result = await apiLogin(email, password);
+      const result = await apiLogin(email, password, captchaToken!);
       if (result) {
         localStorage.setItem("gridguard_token", result.token);
         localStorage.setItem("gridguard_user", JSON.stringify(result.user));
@@ -173,11 +181,17 @@ export default function LoginPage() {
         setErrors({ api: "Invalid credentials. Check your email and access key." });
         showToast("Incorrect email or password", "error");
         setIsLoading(false);
+        // Reset captcha on failure
+        recaptchaRef.current?.reset();
+        setCaptchaToken(null);
       }
     } catch {
       setErrors({ api: "Connection error. Is the backend running?" });
       showToast("Incorrect email or password", "error");
       setIsLoading(false);
+      // Reset captcha on failure
+      recaptchaRef.current?.reset();
+      setCaptchaToken(null);
     }
   };
 
@@ -350,6 +364,21 @@ export default function LoginPage() {
             </Link>
           </div>
         </div>
+
+        <div className="flex justify-center py-2">
+          <ReCAPTCHA
+            ref={recaptchaRef}
+            theme="dark"
+            sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || ""}
+            onChange={(token) => {
+              setCaptchaToken(token);
+              setErrors(prev => ({ ...prev, captcha: undefined }));
+            }}
+          />
+        </div>
+        {errors.captcha && (
+          <p className="text-[10px] font-mono text-danger text-center -mt-1">{errors.captcha}</p>
+        )}
 
         {/* Submit */}
         <motion.button

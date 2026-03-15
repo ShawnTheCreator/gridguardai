@@ -1,8 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import ReCAPTCHA from "react-google-recaptcha";
+import { apiSignup } from "@/lib/api";
+import { useToast } from "@/components/ui/Toast";
 import {
     User,
     Lock,
@@ -130,6 +133,7 @@ const HuaweiLogo = () => (
 // ── Page ─────────────────────────────────────────────────────────────────────
 export default function SignupPage() {
     const router = useRouter();
+    const { showToast } = useToast();
     const [fullName, setFullName] = useState("");
     const [org, setOrg] = useState("");
     const [email, setEmail] = useState("");
@@ -137,11 +141,13 @@ export default function SignupPage() {
     const [showPass, setShowPass] = useState(false);
     const [agreed, setAgreed] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [errors, setErrors] = useState<Record<string, string>>({});
+    const [errors, setErrors] = useState<{ [key: string]: string | undefined }>({});
     const [submitted, setSubmitted] = useState(false);
+    const recaptchaRef = useRef<ReCAPTCHA>(null);
+    const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
     const validate = () => {
-        const e: Record<string, string> = {};
+        const e: { [key: string]: string | undefined } = {};
         if (!fullName.trim()) e.fullName = "Full name is required";
         if (!org.trim()) e.org = "Organisation is required";
         if (!email) e.email = "Email is required";
@@ -152,16 +158,36 @@ export default function SignupPage() {
         return e;
     };
 
-    const handleSignup = (e: React.FormEvent) => {
+    const handleSignup = async (e: React.FormEvent) => {
         e.preventDefault();
         const errs = validate();
+        
+        if (!captchaToken) {
+            errs.captcha = "Please complete the security check";
+        }
+
         setErrors(errs);
         if (Object.keys(errs).length > 0) return;
         setIsLoading(true);
-        setTimeout(() => {
+
+        try {
+            const result = await apiSignup(email, password, fullName, captchaToken!);
+            if (result) {
+                localStorage.setItem("gridguard_token", result.token);
+                localStorage.setItem("gridguard_user", JSON.stringify(result.user));
+                setSubmitted(true);
+            } else {
+                showToast("Registration failed. Email might already be in use.", "error");
+                setIsLoading(false);
+                recaptchaRef.current?.reset();
+                setCaptchaToken(null);
+            }
+        } catch {
+            showToast("Connection error. Is the backend running?", "error");
             setIsLoading(false);
-            setSubmitted(true);
-        }, 1800);
+            recaptchaRef.current?.reset();
+            setCaptchaToken(null);
+        }
     };
 
     if (submitted) {
@@ -303,6 +329,22 @@ export default function SignupPage() {
                         </AnimatePresence>
                     </div>
                 </div>
+
+                {/* Captcha */}
+                <div className="flex justify-center py-2">
+                    <ReCAPTCHA
+                        ref={recaptchaRef}
+                        theme="dark"
+                        sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || ""}
+                        onChange={(token) => {
+                            setCaptchaToken(token);
+                            setErrors(prev => ({ ...prev, captcha: undefined }));
+                        }}
+                    />
+                </div>
+                {errors.captcha && (
+                    <p className="text-[10px] font-mono text-danger text-center -mt-1">{errors.captcha}</p>
+                )}
 
                 {/* Submit */}
                 <motion.button

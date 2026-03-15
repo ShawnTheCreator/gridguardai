@@ -32,6 +32,31 @@ public class AuthController : ControllerBase
     {
         public string Email { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
+        public string? RecaptchaToken { get; set; }
+    }
+
+    public class SignupRequest
+    {
+        public string Email { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public string? RecaptchaToken { get; set; }
+    }
+
+    private async Task<bool> VerifyCaptcha(string? token)
+    {
+        if (string.IsNullOrEmpty(token)) return false;
+
+        var secret = _configuration["RECAPTCHA_SECRET_KEY"];
+        if (string.IsNullOrEmpty(secret)) return true; // Skip if not configured
+
+        using var client = new HttpClient();
+        var response = await client.PostAsync($"https://www.google.com/recaptcha/api/siteverify?secret={secret}&response={token}", null);
+        if (!response.IsSuccessStatusCode) return false;
+
+        var json = await response.Content.ReadAsStringAsync();
+        using var doc = JsonDocument.Parse(json);
+        return doc.RootElement.GetProperty("success").GetBoolean();
     }
 
     [HttpPost("login")]
@@ -39,6 +64,11 @@ public class AuthController : ControllerBase
     {
         try
         {
+            if (!await VerifyCaptcha(request.RecaptchaToken))
+            {
+                return BadRequest(new { error = "Captcha verification failed" });
+            }
+
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
 
             if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
@@ -68,7 +98,54 @@ public class AuthController : ControllerBase
         }
     }
 
-    
+    [HttpPost("signup")]
+    public async Task<IActionResult> Signup([FromBody] SignupRequest request)
+    {
+        try
+        {
+            if (!await VerifyCaptcha(request.RecaptchaToken))
+            {
+                return BadRequest(new { error = "Captcha verification failed" });
+            }
+
+            if (await _context.Users.AnyAsync(u => u.Email == request.Email))
+            {
+                return BadRequest(new { error = "User already exists" });
+            }
+
+            var user = new User
+            {
+                Id = Guid.NewGuid(),
+                Email = request.Email,
+                Name = request.Name,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
+                Role = "operator",
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+
+            var token = _jwtService.GenerateToken(user);
+
+            return Ok(new
+            {
+                token,
+                user = new
+                {
+                    id = user.Id,
+                    email = user.Email,
+                    name = user.Name,
+                    role = user.Role
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"SIGNUP CRASH: {ex.Message}");
+            return StatusCode(500, new { error = "Internal Signup Error" });
+        }
+    }
 
     public class OAuthExchangeRequest
     {

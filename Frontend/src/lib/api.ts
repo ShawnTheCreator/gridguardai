@@ -38,12 +38,12 @@ export interface LoginResponse {
     user: { id: string; email: string; name: string; role: string };
 }
 
-export async function apiLogin(email: string, password: string): Promise<LoginResponse | null> {
+export async function apiLogin(email: string, password: string, recaptchaToken?: string): Promise<LoginResponse | null> {
     try {
         const res = await fetch(`${API_BASE}/api/auth/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, password }),
+            body: JSON.stringify({ email, password, recaptchaToken }),
         });
 
         if (!res.ok) {
@@ -51,6 +51,21 @@ export async function apiLogin(email: string, password: string): Promise<LoginRe
             return null;
         }
 
+        return await res.json() as LoginResponse;
+    } catch {
+        return null;
+    }
+}
+
+export async function apiSignup(email: string, password: string, name: string, recaptchaToken?: string): Promise<LoginResponse | null> {
+    try {
+        const res = await fetch(`${API_BASE}/api/auth/signup`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password, name, recaptchaToken }),
+        });
+
+        if (!res.ok) return null;
         return await res.json() as LoginResponse;
     } catch {
         return null;
