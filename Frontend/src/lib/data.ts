@@ -25,3 +25,29 @@ export const SYSTEM_LOGS = [
   { id: 2, time: "10:30", event: "Automated isolation triggered on TR-03" },
   { id: 3, time: "09:15", event: "System backup completed" },
 ];
+
+export const MOCK_DASHBOARD_SUMMARY = {
+  totalNodes: 1240,
+  activeAlerts: 2,
+  investigatingCount: 1,
+  avgLoad: 68.5,
+  latestConfidence: 94.01,
+  totalSectorLoad: 14.2,
+  activeLosses: 12450
+};
+
+export const MOCK_INCIDENTS = [
+  { id: "INC-001", time: "10:30", location: "Sector 4 - West", type: "Ghost Load", status: "active", confidence: 94, createdAt: "2026-03-15T10:30:00Z" },
+  { id: "INC-002", time: "09:15", location: "Sector 3 - Border", type: "Line Bypass", status: "investigating", confidence: 88, createdAt: "2026-03-15T09:15:00Z" }
+];
+
+export const MOCK_NOTIFICATIONS = [
+  { id: "NT-1", title: "Theft Detected", message: "Ghost load detected at Pole TR-03", severity: "high", isRead: false, createdAt: new Date().toISOString() },
+  { id: "NT-2", title: "System Update", message: "GridGuard AI core updated to v2.4", severity: "info", isRead: true, createdAt: new Date().toISOString() }
+];
+
+export const MOCK_TELEMETRY = [
+  { time: "10:00", deviceId: "TR-01", current: 45 },
+  { time: "10:05", deviceId: "TR-01", current: 47 },
+  { time: "10:10", deviceId: "TR-01", current: 44 }
+];

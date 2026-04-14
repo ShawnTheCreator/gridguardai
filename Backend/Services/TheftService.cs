@@ -16,17 +16,11 @@ namespace Backend.Services;
 /// TheftService — the "Story of a Signal" orchestrator.
 ///
 /// Full pipeline (called on every MQTT alert):
-///
 ///   1. Serialize the waveform → upload to Huawei OBS ("gridguard-evidence" bucket).
 ///   2. Write an initial TheftEvent record to TaurusDB (Hot Data — instant dashboard update).
 ///   3. Call ModelArts Real-Time Inference endpoint with the OBS URL.
 ///   4. Parse the AI verdict and update the TaurusDB record (Warm Data — AI stamp).
 ///   5. Broadcast the final result to the Next.js dashboard via SignalR (UI turns Red/Green).
-///
-/// Why OBS for waveforms?
-///   Storing kilobyte-sized electrical waveforms in rows would kill relational DB performance
-///   at scale. OBS acts as an "Evidence Locker" — we store only the URL in TaurusDB and
-///   keep the database fast regardless of how many poles are monitored.
 /// </summary>
 public class TheftService
 {
@@ -35,8 +29,8 @@ public class TheftService
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
     private readonly HttpClient _httpClient;
     private readonly IHubContext<GridGuardHub> _hubContext;
+    private readonly IRegionalRouter _regionalRouter;
 
-    // ── JSON options (shared, thread-safe) ────────────────────────────────
     private static readonly JsonSerializerOptions _jsonOpts = new()
     {
         PropertyNameCaseInsensitive = true,
@@ -48,36 +42,28 @@ public class TheftService
         IConfiguration configuration,
         IDbContextFactory<AppDbContext> dbFactory,
         HttpClient httpClient,
-        IHubContext<GridGuardHub> hubContext)
+        IHubContext<GridGuardHub> hubContext,
+        IRegionalRouter regionalRouter)
     {
         _logger = logger;
         _configuration = configuration;
         _dbFactory = dbFactory;
         _httpClient = httpClient;
         _hubContext = hubContext;
+        _regionalRouter = regionalRouter;
     }
 
-    // ════════════════════════════════════════════════════════════════════════
-    // TASK 1 + 2 + 3 + 4  — Full "Story of a Signal" pipeline
-    // ════════════════════════════════════════════════════════════════════════
-
-    /// <summary>
-    /// Runs the complete five-step pipeline for one telemetry reading.
-    /// Safe to call concurrently — uses a pooled DbContext factory.
-    /// </summary>
     public async Task<TheftEvent> ProcessAlertAsync(TelemetryPayload telemetry, CancellationToken ct = default)
     {
         _logger.LogInformation("[TheftService] Processing alert for pole {PoleId}", telemetry.pole_id);
 
-        // ── Step 1: Build and upload waveform to OBS ──────────────────────
         var waveformJson = BuildWaveformJson(telemetry);
         var waveformStream = new MemoryStream(Encoding.UTF8.GetBytes(waveformJson));
         var fileName = $"waveform_{telemetry.pole_id}_{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}.json";
 
-        var waveformUrl = await UploadWaveformToOBSAsync(waveformStream, fileName, ct);
+        var waveformUrl = await UploadWaveformToOBSAsync(waveformStream, fileName, ct, telemetry.pole_id);
         _logger.LogInformation("[TheftService] Waveform uploaded → {Url}", waveformUrl);
 
-        // ── Step 2: Write initial (unverified) event to TaurusDB ─────────
         var theftEvent = new TheftEvent
         {
             Id = Guid.NewGuid(),
@@ -94,15 +80,10 @@ public class TheftService
         await using var db = await _dbFactory.CreateDbContextAsync(ct);
         db.TheftEvents.Add(theftEvent);
         await db.SaveChangesAsync(ct);
-        _logger.LogInformation("[TheftService] Initial event saved to TaurusDB (id={Id})", theftEvent.Id);
 
-        // ── Step 3: Call ModelArts Real-Time Inference endpoint ───────────
         var verdict = await CallModelArtsAsync(waveformUrl, telemetry, ct);
-        _logger.LogInformation(
-            "[TheftService] ModelArts verdict → label={Label} confidence={Confidence:F2}",
-            verdict.Label, verdict.Confidence);
+        _logger.LogInformation("[TheftService] ModelArts verdict → label={Label} confidence={Confidence:F2}", verdict.Label, verdict.Confidence);
 
-        // ── Step 4: Update TaurusDB record with AI verdict ────────────────
         theftEvent.IsTheftVerified = verdict.Label == "theft";
         theftEvent.ConfidenceScore = verdict.Confidence;
         theftEvent.AiLabel = verdict.Label;
@@ -117,9 +98,7 @@ public class TheftService
             existing.Status = theftEvent.Status;
             await db.SaveChangesAsync(ct);
         }
-        _logger.LogInformation("[TheftService] TaurusDB record updated — status={Status}", theftEvent.Status);
 
-        // ── Step 4b: Create Incident for confirmed thefts ────────────────
         if (theftEvent.IsTheftVerified)
         {
             var incident = new Incident
@@ -134,10 +113,8 @@ public class TheftService
             };
             db.Incidents.Add(incident);
             await db.SaveChangesAsync(ct);
-            _logger.LogInformation("[TheftService] Incident created → {Id}", incident.Id);
         }
 
-        // ── Step 5: Broadcast to Next.js dashboard via SignalR ───────────
         var payload = new GridGuardAlertPayload
         {
             pole_id = theftEvent.PoleId,
@@ -148,40 +125,28 @@ public class TheftService
         };
 
         await GridGuardHub.BroadcastTheftAlertAsync(_hubContext, payload);
-        _logger.LogInformation("[TheftService] SignalR broadcast sent for pole {PoleId}", theftEvent.PoleId);
-
         return theftEvent;
     }
 
-    // ════════════════════════════════════════════════════════════════════════
-    // TASK 2 — OBS Evidence Locker
-    // ════════════════════════════════════════════════════════════════════════
-
-    /// <summary>
-    /// Uploads a raw electrical waveform JSON file to the "gridguard-evidence" OBS bucket
-    /// and returns the public (or pre-signed) URL for use in the dashboard waveform viewer.
-    /// </summary>
-    /// <param name="data">Waveform stream (JSON bytes).</param>
-    /// <param name="fileName">Object key inside the bucket (e.g. "waveform_pole-001_1740000000.json").</param>
-    /// <returns>A URL string the frontend can fetch the file from.</returns>
-    public async Task<string> UploadWaveformToOBSAsync(Stream data, string fileName, CancellationToken ct = default)
+    public async Task<string> UploadWaveformToOBSAsync(Stream data, string fileName, CancellationToken ct = default, string? poleId = null)
     {
-        var obsSection = _configuration.GetSection("HuaweiCloud:OBS");
-        var accessKey = obsSection["AccessKey"]!;
-        var secretKey = obsSection["SecretKey"]!;
-        var endpoint = obsSection["Endpoint"]!;          // e.g. "https://obs.ap-southeast-3.myhuaweicloud.com"
-        var bucketName = obsSection["BucketName"] ?? "gridguard-evidence";
+        var regionalConfig = _regionalRouter.GetConfig(poleId ?? string.Empty);
+        var accessKey = regionalConfig.AccessKey;
+        var secretKey = regionalConfig.SecretKey;
+        var endpoint = regionalConfig.ObsEndpoint;
+        var bucketName = regionalConfig.ObsBucket;
+
+        if (accessKey == "AK_PROD") 
+        {
+            var obsSection = _configuration.GetSection("HuaweiCloud:OBS");
+            accessKey = obsSection["AccessKey"] ?? accessKey;
+            secretKey = obsSection["SecretKey"] ?? secretKey;
+        }
 
         try
         {
-            // Build the OBS client with AK/SK credentials
-            var obsConfig = new ObsConfig
-            {
-                Endpoint = endpoint
-            };
+            var obsConfig = new ObsConfig { Endpoint = endpoint };
             var obsClient = new ObsClient(accessKey, secretKey, obsConfig);
-
-            // Ensure stream is at the start
             if (data.CanSeek) data.Seek(0, SeekOrigin.Begin);
 
             var putRequest = new PutObjectRequest
@@ -193,46 +158,33 @@ public class TheftService
             };
 
             var putResponse = obsClient.PutObject(putRequest);
-
             if ((int)putResponse.StatusCode is >= 200 and < 300)
             {
-                var host = endpoint.StartsWith("http", StringComparison.OrdinalIgnoreCase)
-                    ? endpoint
-                    : $"https://{endpoint}";
-                var publicUrl = $"{host}/{bucketName}/{Uri.EscapeDataString(fileName)}";
-
-                _logger.LogInformation("[OBS] Upload success: {Url}", publicUrl);
-                return publicUrl;
+                var host = endpoint.StartsWith("http", StringComparison.OrdinalIgnoreCase) ? endpoint : $"https://{endpoint}";
+                return $"{host}/{bucketName}/{Uri.EscapeDataString(fileName)}";
             }
-
-            _logger.LogError("[OBS] Upload failed with status {Status}", putResponse.StatusCode);
             return string.Empty;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "[OBS] Upload threw an exception for file {FileName}", fileName);
+            _logger.LogError(ex, "[OBS] Error uploading {FileName}", fileName);
             return string.Empty;
         }
     }
 
-    // ════════════════════════════════════════════════════════════════════════
-    // TASK 3 — ModelArts AI Bridge
-    // ════════════════════════════════════════════════════════════════════════
-
-    /// <summary>
-    /// Calls the Huawei ModelArts Real-Time Inference endpoint.
-    /// Sends the OBS waveform URL alongside raw telemetry for context.
-    /// Parses the JSON response: <c>{ "label": "theft", "confidence": 0.98 }</c>
-    /// </summary>
-    private async Task<ModelArtsVerdict> CallModelArtsAsync(
-        string waveformUrl, TelemetryPayload telemetry, CancellationToken ct)
+    private async Task<ModelArtsVerdict> CallModelArtsAsync(string waveformUrl, TelemetryPayload telemetry, CancellationToken ct)
     {
-        var modelArtsSection = _configuration.GetSection("HuaweiCloud:ModelArts");
-        var inferenceUrl = modelArtsSection["InferenceEndpoint"]!;
-        var apiToken = modelArtsSection["ApiToken"]!;
+        var regionalConfig = _regionalRouter.GetConfig(telemetry.pole_id);
+        var inferenceUrl = regionalConfig.ModelArtsEndpoint;
+        var apiToken = regionalConfig.ModelArtsToken;
 
-        // Request body sent to ModelArts — include both the OBS URL and raw numbers
-        // so the Python model can either download the waveform or use the fast-path scalars.
+        if (apiToken == "TOKEN_ZA")
+        {
+            var modelArtsSection = _configuration.GetSection("HuaweiCloud:ModelArts");
+            inferenceUrl = modelArtsSection["InferenceEndpoint"] ?? inferenceUrl;
+            apiToken = modelArtsSection["ApiToken"] ?? apiToken;
+        }
+
         var requestBody = new
         {
             waveform_url = waveformUrl,
@@ -248,37 +200,21 @@ public class TheftService
         {
             using var request = new HttpRequestMessage(HttpMethod.Post, inferenceUrl);
             request.Headers.Add("X-Auth-Token", apiToken);
-            request.Content = new StringContent(
-                JsonSerializer.Serialize(requestBody, _jsonOpts),
-                Encoding.UTF8,
-                "application/json");
+            request.Content = new StringContent(JsonSerializer.Serialize(requestBody, _jsonOpts), Encoding.UTF8, "application/json");
 
             var response = await _httpClient.SendAsync(request, ct);
             response.EnsureSuccessStatusCode();
 
             var responseJson = await response.Content.ReadAsStringAsync(ct);
-            _logger.LogDebug("[ModelArts] Raw response: {Json}", responseJson);
-
-            // Parse: { "label": "theft", "confidence": 0.98 }
-            var verdict = JsonSerializer.Deserialize<ModelArtsVerdict>(responseJson, _jsonOpts);
-            return verdict ?? new ModelArtsVerdict { Label = "error", Confidence = 0f };
+            return JsonSerializer.Deserialize<ModelArtsVerdict>(responseJson, _jsonOpts) ?? new ModelArtsVerdict { Label = "error", Confidence = 0f };
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "[ModelArts] Inference call failed for pole {PoleId}", telemetry.pole_id);
-            // Return a safe default so the pipeline doesn't crash on AI outage
+            _logger.LogError(ex, "[ModelArts] AI call failed for {PoleId}", telemetry.pole_id);
             return new ModelArtsVerdict { Label = "unknown", Confidence = 0f };
         }
     }
 
-    // ════════════════════════════════════════════════════════════════════════
-    // Helpers
-    // ════════════════════════════════════════════════════════════════════════
-
-    /// <summary>
-    /// Builds the raw electrical waveform JSON payload from the incoming telemetry.
-    /// This is what gets stored in OBS as long-term evidence.
-    /// </summary>
     private static string BuildWaveformJson(TelemetryPayload telemetry)
     {
         var waveform = new
@@ -300,9 +236,6 @@ public class TheftService
     }
 }
 
-// ── Supporting DTOs ────────────────────────────────────────────────────────
-
-/// <summary>Matches the JSON response body from the ModelArts inference endpoint.</summary>
 public class ModelArtsVerdict
 {
     [JsonPropertyName("label")]

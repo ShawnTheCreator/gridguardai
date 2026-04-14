@@ -3,6 +3,7 @@ using Backend.Hubs;
 using Backend.Services;
 using Microsoft.EntityFrameworkCore;
 using DotNetEnv;
+using System.Collections.Frozen;
 
 Env.Load();
 
@@ -44,6 +45,7 @@ builder.Services.AddScoped(sp =>
 builder.Services.AddScoped<ITheftHistoryRepository, TheftHistoryRepository>();
 
 builder.Services.AddHttpClient<TheftService>();
+builder.Services.AddSingleton<IRegionalRouter, RegionalInfrastructureRouter>();
 builder.Services.AddSingleton<TheftService>(); 
 
 
@@ -59,13 +61,15 @@ builder.Services.AddSignalR(options =>
 
 builder.Services.AddCors(options =>
 {
+    var allowedHosts = new[] { "localhost", "vercel.app" }.ToFrozenSet();
+
     options.AddPolicy("NextJsDashboard", policy =>
     {
         policy
             .SetIsOriginAllowed(origin => 
             {
-                var uri = new Uri(origin);
-                return uri.Host.Contains("localhost") || uri.Host.Contains("vercel.app");
+                var host = new Uri(origin).Host;
+                return allowedHosts.Any(h => host.EndsWith(h, StringComparison.OrdinalIgnoreCase));
             })
             .AllowAnyHeader()
             .AllowAnyMethod()
