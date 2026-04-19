@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import MapLoader from "@/features/map/MapLoader";
+import LocationAwareMap from "@/features/map/LocationAwareMap";
 import { useToast } from "@/components/ui/Toast";
+import { useGeolocation } from "@/hooks/useGeolocation";
 import { 
   Zap, 
   MapPin, 
@@ -26,12 +27,14 @@ interface WorkOrder {
   estimatedTime: string;
   status: "pending" | "in_progress" | "completed";
   assignedAt: string;
+  area: string;
 }
 
 export default function WorkerDashboard() {
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const { showToast } = useToast();
-  const [workOrders, setWorkOrders] = useState<WorkOrder[]>([
+  const { location, assignedArea, loading: geoLoading, error: geoError } = useGeolocation();
+  const [allWorkOrders, setAllWorkOrders] = useState<WorkOrder[]>([
     {
       id: "WO-001",
       type: "emergency",
@@ -41,7 +44,8 @@ export default function WorkerDashboard() {
       description: "Transformer overload detected - immediate inspection required",
       estimatedTime: "45 min",
       status: "pending",
-      assignedAt: "10:15"
+      assignedAt: "10:15",
+      area: "Johannesburg"
     },
     {
       id: "WO-002", 
@@ -52,7 +56,8 @@ export default function WorkerDashboard() {
       description: "Routine inspection after AI theft detection alert",
       estimatedTime: "30 min",
       status: "in_progress",
-      assignedAt: "09:30"
+      assignedAt: "09:30",
+      area: "Johannesburg"
     },
     {
       id: "WO-003",
@@ -63,9 +68,27 @@ export default function WorkerDashboard() {
       description: "Scheduled sensor calibration and maintenance",
       estimatedTime: "60 min",
       status: "pending",
-      assignedAt: "08:00"
+      assignedAt: "08:00",
+      area: "Durban"
+    },
+    {
+      id: "WO-004",
+      type: "emergency",
+      priority: "critical",
+      location: "Sector 1, Block 5",
+      poleId: "P-105",
+      description: "Power outage reported - urgent response needed",
+      estimatedTime: "30 min",
+      status: "pending",
+      assignedAt: "11:00",
+      area: "Cape Town"
     }
   ]);
+
+  // Filter work orders based on assigned geographic area
+  const workOrders = allWorkOrders.filter(order => 
+    assignedArea && order.area === assignedArea.name
+  );
 
   const [workerStats, setWorkerStats] = useState({
     todayCompleted: 3,
@@ -80,7 +103,7 @@ export default function WorkerDashboard() {
   };
 
   const handleStartWork = (orderId: string) => {
-    setWorkOrders(prev => prev.map(order => 
+    setAllWorkOrders((prev: WorkOrder[]) => prev.map((order: WorkOrder) => 
       order.id === orderId 
         ? { ...order, status: "in_progress" as const }
         : order
@@ -89,7 +112,7 @@ export default function WorkerDashboard() {
   };
 
   const handleCompleteWork = (orderId: string) => {
-    setWorkOrders(prev => prev.map(order => 
+    setAllWorkOrders((prev: WorkOrder[]) => prev.map((order: WorkOrder) => 
       order.id === orderId 
         ? { ...order, status: "completed" as const }
         : order
@@ -129,8 +152,13 @@ export default function WorkerDashboard() {
             Field Operations <span className="text-acid">Mobile</span>
           </h1>
           <p className="text-zinc-500 font-mono text-sm">
-            {workerStats.currentLocation} | {workOrders.filter(o => o.status === "pending").length} Pending Tasks
+            {geoLoading ? "Detecting location..." : assignedArea ? `${assignedArea.name}, ${assignedArea.province}` : "Location Unknown"} | {workOrders.filter(o => o.status === "pending").length} Pending Tasks
           </p>
+          {geoError && (
+            <p className="text-danger font-mono text-xs mt-1">
+              ⚠️ {geoError}
+            </p>
+          )}
         </div>
 
         <div className="hidden md:flex gap-4">
@@ -241,10 +269,13 @@ export default function WorkerDashboard() {
         {/* Map View */}
         <div className="border border-border bg-panel p-4 rounded-lg">
           <h3 className="text-xs font-bold font-mono text-zinc-400 uppercase tracking-widest mb-4">
-            Location Map
+            Location Map - {assignedArea ? `${assignedArea.name} Only` : 'Location Required'}
           </h3>
           <div className="h-96 rounded-lg overflow-hidden">
-            <MapLoader onPoleClick={handleNodeClick} />
+            <LocationAwareMap 
+              onPoleClick={handleNodeClick} 
+              assignedArea={assignedArea || undefined}
+            />
           </div>
           {selectedNodeId && (
             <div className="mt-3 p-2 bg-surface/50 rounded text-[11px] font-mono text-acid">
