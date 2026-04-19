@@ -62,8 +62,26 @@ export async function apiLogin(email: string, password: string, recaptchaToken?:
         // If backend returns 401 or other error, check for demo credentials
         if (email === "thabo@gridguard.co.za" && password === "gridguard123") {
             return {
-                token: "demo-token-123",
-                user: { id: "1", email: "thabo@gridguard.co.za", name: "Thabo (Demo)", role: "admin" }
+                token: "demo-token-admin",
+                user: { id: "1", email: "thabo@gridguard.co.za", name: "Thabo Mokoena", role: "worker" }
+            };
+        }
+        if (email === "patrick@gridguard.co.za" && password === "governance123") {
+            return {
+                token: "demo-token-governance",
+                user: { id: "2", email: "patrick@gridguard.co.za", name: "Patrick Nkosi", role: "governance" }
+            };
+        }
+        if (email === "shawn@gridguard.co.za" && password === "dev123") {
+            return {
+                token: "demo-token-dev",
+                user: { id: "3", email: "shawn@gridguard.co.za", name: "Shawn The Creator", role: "dev" }
+            };
+        }
+        if (email === "admin@gridguard.co.za" && password === "admin123") {
+            return {
+                token: "demo-token-admin",
+                user: { id: "4", email: "admin@gridguard.co.za", name: "System Admin", role: "admin" }
             };
         }
         return null;
@@ -71,8 +89,26 @@ export async function apiLogin(email: string, password: string, recaptchaToken?:
         // Network error - fallback to demo if credentials match
         if (email === "thabo@gridguard.co.za" && password === "gridguard123") {
             return {
-                token: "demo-token-123",
-                user: { id: "1", email: "thabo@gridguard.co.za", name: "Thabo (Demo)", role: "admin" }
+                token: "demo-token-admin",
+                user: { id: "1", email: "thabo@gridguard.co.za", name: "Thabo Mokoena", role: "worker" }
+            };
+        }
+        if (email === "patrick@gridguard.co.za" && password === "governance123") {
+            return {
+                token: "demo-token-governance",
+                user: { id: "2", email: "patrick@gridguard.co.za", name: "Patrick Nkosi", role: "governance" }
+            };
+        }
+        if (email === "shawn@gridguard.co.za" && password === "dev123") {
+            return {
+                token: "demo-token-dev",
+                user: { id: "3", email: "shawn@gridguard.co.za", name: "Shawn The Creator", role: "dev" }
+            };
+        }
+        if (email === "admin@gridguard.co.za" && password === "admin123") {
+            return {
+                token: "demo-token-admin",
+                user: { id: "4", email: "admin@gridguard.co.za", name: "System Admin", role: "admin" }
             };
         }
         return null;

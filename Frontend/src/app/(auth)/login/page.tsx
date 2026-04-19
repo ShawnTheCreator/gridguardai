@@ -176,7 +176,23 @@ export default function LoginPage() {
       if (result) {
         localStorage.setItem("gridguard_token", result.token);
         localStorage.setItem("gridguard_user", JSON.stringify(result.user));
-        router.push("/admin");
+        
+        // Route based on user role
+        switch (result.user.role) {
+          case "worker":
+            router.push("/worker");
+            break;
+          case "governance":
+            router.push("/governance");
+            break;
+          case "dev":
+            router.push("/dev");
+            break;
+          case "admin":
+          default:
+            router.push("/admin");
+            break;
+        }
       } else {
         setErrors({ api: "Invalid credentials. Check your email and access key." });
         showToast("Incorrect email or password", "error");
