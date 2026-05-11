@@ -12,12 +12,12 @@ export default function DashboardLayout({
   const user = useRequireAuth();
   if (!user) return null; // Block render until auth is confirmed
   return (
-    <div className="flex flex-col h-screen w-full bg-void overflow-hidden">
+    <div className="flex flex-col h-screen w-full bg-gray-100 overflow-hidden">
       <Header />
       <div className="flex flex-1 overflow-hidden relative">
         <Sidebar />
-        {/* Main Content Area with the Grid Background */}
-        <main className="flex-1 overflow-y-auto custom-scroll min-w-0 bg-grid-pattern relative">
+        {/* Main Content Area */}
+        <main className="flex-1 overflow-y-auto custom-scroll min-w-0 bg-gray-100 relative">
           {children}
         </main>
       </div>
