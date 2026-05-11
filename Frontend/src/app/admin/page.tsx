@@ -40,26 +40,30 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="p-6 md:p-12">
+    <div className="p-6 md:p-12 bg-gray-100 min-h-screen">
       <div className="flex justify-between items-end mb-8">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight mb-2 font-sans text-white uppercase">
-            Situational Awareness <span className="text-acid">Live</span>
-          </h1>
-          <p className="text-zinc-500 font-mono text-sm">
-            Sector 4: Monitoring {totalNodes} Nodes | {activeAlerts} Active Alerts Detected
-          </p>
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-lg bg-white border border-gray-200 flex items-center justify-center shadow-sm">
+            <img src="/Logo.webp" alt="GridGuard" className="w-8 h-8 object-contain" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight mb-2 font-sans text-black">
+              Situational Awareness
+            </h1>
+            <p className="text-gray-700 font-mono text-sm">
+              Sector 4: Monitoring {totalNodes} Nodes | {activeAlerts} Active Alerts Detected
+            </p>
+          </div>
         </div>
 
-        <div className="hidden md:flex gap-4">
-          <div className="text-right">
-            <div className="text-[10px] font-mono text-dim uppercase">Total Sector Load</div>
-            <div className="text-xl font-bold text-white font-mono">{totalSectorLoad} <span className="text-xs text-zinc-500">MW</span></div>
+        <div className="hidden md:flex gap-6">
+          <div className="text-right px-4 py-2 bg-white rounded-lg border border-gray-200">
+            <div className="text-[10px] font-mono text-gray-500 uppercase">Total Sector Load</div>
+            <div className="text-xl font-bold text-black font-mono">{totalSectorLoad} <span className="text-xs text-gray-500">MW</span></div>
           </div>
-          <div className="h-10 w-px bg-border"></div>
-          <div className="text-right">
-            <div className="text-[10px] font-mono text-dim uppercase">Active Losses</div>
-            <div className="text-xl font-bold text-danger font-mono">{activeLosses} <span className="text-xs text-zinc-500">/hr</span></div>
+          <div className="text-right px-4 py-2 bg-white rounded-lg border border-gray-200">
+            <div className="text-[10px] font-mono text-gray-500 uppercase">Active Losses</div>
+            <div className="text-xl font-bold text-red-600 font-mono">{activeLosses} <span className="text-xs text-gray-500">/hr</span></div>
           </div>
         </div>
       </div>
@@ -70,27 +74,30 @@ export default function DashboardPage() {
       </div>
 
       {/* Analytics Row */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="border border-border bg-surface/50 p-4 rounded">
-          <div className="text-[10px] font-mono text-dim uppercase mb-1">AI Theft Confidence</div>
-          <div className="text-2xl font-bold text-acid">94.01%</div>
-          [cite_start]<div className="text-[9px] text-zinc-600 mt-2">Based on CNN-XGBoost signature matching [cite: 71]</div>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
+          <div className="text-xs font-medium text-gray-600 uppercase mb-2">AI Theft Confidence</div>
+          <div className="text-2xl font-bold text-green-600">94.01%</div>
+          <div className="text-xs text-gray-500 mt-2">Based on CNN-XGBoost signature matching</div>
         </div>
-        <div className="border border-border bg-surface/50 p-4 rounded">
-          <div className="text-[10px] font-mono text-dim uppercase mb-1">Thermal Overload Risk</div>
-          <div className="text-2xl font-bold text-white">Medium</div>
-          [cite_start]<div className="text-[9px] text-zinc-600 mt-2">3 Transformers at 85%+ capacity [cite: 99]</div>
+        <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
+          <div className="text-xs font-medium text-gray-600 uppercase mb-2">Thermal Overload Risk</div>
+          <div className="text-2xl font-bold text-yellow-600">Medium</div>
+          <div className="text-xs text-gray-500 mt-2">3 Transformers at 85%+ capacity</div>
         </div>
-        <div className="md:col-span-2 border border-border bg-surface/50 p-4 rounded flex items-center justify-between">
+        <div className="md:col-span-2 bg-white p-5 rounded-lg border border-gray-200 shadow-sm flex items-center justify-between">
           <div>
-            <div className="text-[10px] font-mono text-dim uppercase mb-1">Auto-Isolation Status</div>
-            <div className="text-sm font-bold text-white uppercase">Ready / Armed</div>
+            <div className="text-xs font-medium text-gray-600 uppercase mb-2">Auto-Isolation Status</div>
+            <div className="text-sm font-bold text-black flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-green-500"></span>
+              Ready / Armed
+            </div>
           </div>
           <button
             onClick={handleEmergencyOverride}
-            className="px-4 py-2 bg-acid text-black font-bold text-xs uppercase hover:bg-white transition-colors shadow-[0_0_15px_rgba(204,255,0,0.4)]"
+            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium text-sm rounded-lg transition-colors shadow-sm"
           >
-            Emergency Manual Override
+            Emergency Override
           </button>
         </div>
       </div>
@@ -101,25 +108,25 @@ export default function DashboardPage() {
           <GhostLoadChart />
         </div>
 
-        <div className="border border-border bg-panel p-4 rounded-lg flex flex-col">
-          <h3 className="text-xs font-bold font-mono text-zinc-400 uppercase tracking-widest mb-4">
+        <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm flex flex-col">
+          <h3 className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-4">
             Live Event Log
           </h3>
-          <div className="flex-1 space-y-3 overflow-hidden relative">
+          <div className="flex-1 space-y-3 overflow-hidden">
             {[
-              { time: "10:34", msg: "Energy Balance Normal", sub: "Pole TR-04 stable" },
-              { time: "10:33", msg: "Energy Balance Normal", sub: "Pole TR-04 stable" },
-              { time: "10:32", msg: "Energy Balance Normal", sub: "Pole TR-04 stable" },
+              { time: "10:34", msg: "Energy Balance Normal", sub: "Pole TR-04 stable", status: "normal" },
+              { time: "10:33", msg: "Load Fluctuation Detected", sub: "Pole TR-12 monitoring", status: "warning" },
+              { time: "10:32", msg: "Energy Balance Normal", sub: "Pole TR-04 stable", status: "normal" },
             ].map((log, i) => (
-              <div key={i} className="flex gap-3 text-xs border-b border-white/5 pb-2">
-                <span className="font-mono text-dim">{log.time}</span>
-                <div>
-                  <span className="text-acid block">{log.msg}</span>
-                  <span className="text-zinc-500 text-[10px]">{log.sub}</span>
+              <div key={i} className="flex gap-3 text-sm border-b border-gray-100 pb-3 last:border-0">
+                <span className="font-mono text-gray-500 text-xs">{log.time}</span>
+                <div className="flex-1">
+                  <span className={`block font-medium ${log.status === 'warning' ? 'text-yellow-600' : 'text-black'}`}>{log.msg}</span>
+                  <span className="text-gray-500 text-xs">{log.sub}</span>
                 </div>
+                <span className={`w-2 h-2 rounded-full mt-1 ${log.status === 'warning' ? 'bg-yellow-500' : 'bg-green-500'}`}></span>
               </div>
             ))}
-            <div className="absolute bottom-0 w-full h-10 bg-linear-to-t from-panel to-transparent"></div>
           </div>
         </div>
       </div>

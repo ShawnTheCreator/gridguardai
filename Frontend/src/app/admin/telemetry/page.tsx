@@ -24,14 +24,15 @@ const INITIAL_STREAM = [...Array(5)].map((_, i) => ({
 
 // Reusable Metric Card
 function MetricCard({ label, value, unit, status = "normal" }: any) {
-  const color = status === "critical" ? "text-danger" : status === "warning" ? "text-warning" : "text-white";
-  const border = status === "critical" ? "border-danger/30" : "border-border";
+  const color = status === "critical" ? "text-red-600" : status === "warning" ? "text-yellow-600" : "text-black";
+  const border = status === "critical" ? "border-red-200" : "border-gray-200";
+  const bg = "bg-white";
 
   return (
-    <div className={`bg-surface border ${border} p-4 rounded-lg`}>
-      <div className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest mb-1">{label}</div>
+    <div className={`${bg} border ${border} p-4 rounded-lg shadow-sm`}>
+      <div className="text-[10px] font-mono text-black uppercase tracking-widest mb-1">{label}</div>
       <div className={`text-2xl font-bold font-mono ${color}`}>
-        {value} <span className="text-xs text-zinc-600 font-normal">{unit}</span>
+        {value} <span className="text-xs text-gray-500 font-normal">{unit}</span>
       </div>
     </div>
   )
@@ -69,10 +70,10 @@ export default function TelemetryPage() {
     <div className="p-6 md:p-12 space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight mb-2 font-sans text-white uppercase">
+        <h1 className="text-3xl font-bold tracking-tight mb-2 font-sans text-black">
           Signal Telemetry
         </h1>
-        <p className="text-zinc-500 font-mono text-sm">
+        <p className="text-gray-700 font-mono text-sm">
           Real-time grid stability & power quality monitoring.
         </p>
       </div>
@@ -90,8 +91,8 @@ export default function TelemetryPage() {
         {/* Chart 1: The Harmonic Analysis we just built */}
         <div>
           <div className="mb-4 flex items-center gap-2">
-            <div className="w-2 h-2 bg-acid rounded-sm"></div>
-            <h2 className="text-sm font-bold text-white uppercase">Power Quality (FFT)</h2>
+            <div className="w-2 h-2 bg-green-600 rounded-sm"></div>
+            <h2 className="text-sm font-bold text-black uppercase">Power Quality (FFT)</h2>
           </div>
           <HarmonicChart />
         </div>
@@ -99,69 +100,69 @@ export default function TelemetryPage() {
         {/* Chart 2: Reuse the Ghost Load Chart for context */}
         <div>
           <div className="mb-4 flex items-center gap-2">
-            <div className="w-2 h-2 bg-danger rounded-sm"></div>
-            <h2 className="text-sm font-bold text-white uppercase">Loss Detection</h2>
+            <div className="w-2 h-2 bg-red-600 rounded-sm"></div>
+            <h2 className="text-sm font-bold text-black uppercase">Loss Detection</h2>
           </div>
           <GhostLoadChart />
         </div>
       </div>
 
       {/* Hardware Diagnostics Section */}
-      <div className="bg-panel border border-border rounded-xl p-6 relative overflow-hidden group">
+      <div className="bg-white border border-gray-200 rounded-xl p-6 relative overflow-hidden group shadow-sm">
         <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-          <Cpu className="w-32 h-32 text-white" />
+          <Cpu className="w-32 h-32 text-gray-400" />
         </div>
         
         <div className="flex flex-col md:flex-row gap-8 items-center">
           <div className="w-full md:w-1/3 space-y-4">
-            <div className="flex items-center gap-2 text-acid">
+            <div className="flex items-center gap-2 text-gray-700">
               <Cpu className="w-5 h-5" />
-              <h2 className="text-lg font-bold uppercase tracking-tight">ESP32 Hardware Node</h2>
+              <h2 className="text-lg font-bold tracking-tight text-black">ESP32 Hardware Node</h2>
             </div>
-            <p className="text-xs text-zinc-500 font-mono leading-relaxed">
+            <p className="text-xs text-gray-700 font-mono leading-relaxed">
               Live heartbeat from the edge sensing device. 
               Encrypted MQTT tunnel active via Huawei Cloud IoT.
             </p>
             <div className="pt-4 flex gap-3">
-              <div className="px-3 py-1 bg-success/10 text-success border border-success/20 rounded text-[10px] font-mono flex items-center gap-1.5">
+              <div className="px-3 py-1 bg-green-100 text-green-700 border border-green-200 rounded text-[10px] font-mono flex items-center gap-1.5">
                 <ShieldCheck className="w-3 h-3" /> SECURE
               </div>
-              <div className="px-3 py-1 bg-acid/10 text-acid border border-acid/20 rounded text-[10px] font-mono">
+              <div className="px-3 py-1 bg-gray-100 text-gray-700 border border-gray-200 rounded text-[10px] font-mono">
                 v2.4.0-PROD
               </div>
             </div>
           </div>
 
           <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
-            <div className="bg-void/50 border border-border p-4 rounded-lg">
-              <div className="text-[10px] font-mono text-zinc-500 uppercase mb-2 flex justify-between">
+            <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg">
+              <div className="text-[10px] font-mono text-gray-600 uppercase mb-2 flex justify-between">
                 <span>Signal Strength</span>
-                <Wifi className="w-3 h-3 text-acid" />
+                <Wifi className="w-3 h-3 text-green-600" />
               </div>
-              <div className="text-xl font-bold text-white font-mono">-64 <span className="text-[10px] text-zinc-600">dBm</span></div>
-              <div className="mt-2 w-full h-1 bg-white/5 rounded-full overflow-hidden">
-                <div className="h-full bg-acid w-3/4" />
+              <div className="text-xl font-bold text-black font-mono">-64 <span className="text-[10px] text-gray-500">dBm</span></div>
+              <div className="mt-2 w-full h-1 bg-gray-200 rounded-full overflow-hidden">
+                <div className="h-full bg-green-600 w-3/4" />
               </div>
             </div>
             
-            <div className="bg-void/50 border border-border p-4 rounded-lg">
-              <div className="text-[10px] font-mono text-zinc-500 uppercase mb-2 flex justify-between">
+            <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg">
+              <div className="text-[10px] font-mono text-gray-600 uppercase mb-2 flex justify-between">
                 <span>CPU Temp</span>
                 <Thermometer className="w-3 h-3 text-orange-500" />
               </div>
-              <div className="text-xl font-bold text-white font-mono">42.8 <span className="text-[10px] text-zinc-600">°C</span></div>
-              <div className="mt-2 w-full h-1 bg-white/5 rounded-full overflow-hidden">
+              <div className="text-xl font-bold text-black font-mono">42.8 <span className="text-[10px] text-gray-500">°C</span></div>
+              <div className="mt-2 w-full h-1 bg-gray-200 rounded-full overflow-hidden">
                 <div className="h-full bg-orange-500 w-2/5" />
               </div>
             </div>
 
-            <div className="bg-void/50 border border-border p-4 rounded-lg">
-              <div className="text-[10px] font-mono text-zinc-500 uppercase mb-2 flex justify-between">
+            <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg">
+              <div className="text-[10px] font-mono text-gray-600 uppercase mb-2 flex justify-between">
                 <span>Buffer Health</span>
                 <Activity className="w-3 h-3 text-blue-500" />
               </div>
-              <div className="text-xl font-bold text-white font-mono">99.2 <span className="text-[10px] text-zinc-600">%</span></div>
-              <div className="mt-2 w-full h-1 bg-white/5 rounded-full overflow-hidden">
+              <div className="text-xl font-bold text-black font-mono">99.2 <span className="text-[10px] text-gray-500">%</span></div>
+              <div className="mt-2 w-full h-1 bg-gray-200 rounded-full overflow-hidden">
                 <div className="h-full bg-blue-500 w-[99%]" />
               </div>
             </div>
@@ -170,14 +171,14 @@ export default function TelemetryPage() {
       </div>
 
       {/* Raw Data Log Table */}
-      <div className="border border-border rounded-lg overflow-hidden bg-surface">
-        <div className="px-6 py-4 border-b border-border bg-panel">
-          <h3 className="text-xs font-bold font-mono text-zinc-400 uppercase tracking-widest">
+      <div className="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
+        <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+          <h3 className="text-xs font-bold font-mono text-black uppercase tracking-widest">
             Raw Telemetry Stream (Last 10s)
           </h3>
         </div>
-        <table className="w-full text-left text-sm font-mono text-zinc-400">
-          <thead className="bg-black text-[10px] uppercase text-dim">
+        <table className="w-full text-left text-sm font-mono text-black">
+          <thead className="bg-gray-100 text-[10px] uppercase text-gray-600">
             <tr>
               <th className="px-6 py-3 font-medium">Timestamp</th>
               <th className="px-6 py-3 font-medium">Node ID</th>
@@ -186,14 +187,14 @@ export default function TelemetryPage() {
               <th className="px-6 py-3 font-medium">Status</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-800">
+          <tbody className="divide-y divide-gray-100">
             {stream.map((row) => (
-              <tr key={row.id} className="hover:bg-white/5 transition-colors">
-                <td className="px-6 py-3">{row.time}</td>
-                <td className="px-6 py-3 text-white">{row.nodeId}</td>
-                <td className="px-6 py-3">{row.metric}</td>
-                <td className="px-6 py-3 text-warning">{row.value}</td>
-                <td className="px-6 py-3"><span className="px-2 py-0.5 rounded bg-warning/10 text-warning text-[10px] border border-warning/20">{row.status}</span></td>
+              <tr key={row.id} className="hover:bg-gray-50 transition-colors">
+                <td className="px-6 py-3 text-gray-700">{row.time}</td>
+                <td className="px-6 py-3 text-black">{row.nodeId}</td>
+                <td className="px-6 py-3 text-gray-700">{row.metric}</td>
+                <td className="px-6 py-3 text-yellow-600">{row.value}</td>
+                <td className="px-6 py-3"><span className="px-2 py-0.5 rounded bg-yellow-100 text-yellow-700 text-[10px] border border-yellow-200">{row.status}</span></td>
               </tr>
             ))}
           </tbody>

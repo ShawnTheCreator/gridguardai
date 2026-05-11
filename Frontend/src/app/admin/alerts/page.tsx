@@ -121,7 +121,7 @@ export default function AlertsPage() {
                                 <div>
                                     <div className="flex items-center gap-3 mb-2">
                                         <ShieldAlert className="w-6 h-6 text-acid" />
-                                        <h2 className="text-xl font-bold text-white tracking-tight">EVIDENCE PACK: {selectedIncident.id}</h2>
+                                        <h2 className="text-xl font-bold text-gray-900 tracking-tight">EVIDENCE PACK: {selectedIncident.id}</h2>
                                     </div>
                                     <div className="flex gap-4 text-xs font-mono text-zinc-400">
                                         <span className="uppercase">{selectedIncident.type}</span>
@@ -130,7 +130,7 @@ export default function AlertsPage() {
                                 </div>
                                 <button
                                     onClick={() => setSelectedIncident(null)}
-                                    className="p-2 hover:bg-white/10 rounded-full text-zinc-400 hover:text-white transition-colors"
+                                    className="p-2 hover:bg-gray-100 rounded-full text-gray-600 hover:text-gray-900 transition-colors"
                                 >
                                     <X className="w-5 h-5" />
                                 </button>
@@ -210,31 +210,31 @@ export default function AlertsPage() {
             )}
 
             {/* --- Page Header --- */}
-            <div className="flex flex-col md:flex-row justify-between items-end gap-6 border-b border-white/5 pb-8">
+            <div className="flex flex-col md:flex-row justify-between items-end gap-6 border-b border-gray-200 pb-8">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight mb-2 font-sans text-white uppercase flex items-center gap-3">
-                        <AlertTriangle className="text-danger w-8 h-8" />
+                    <h1 className="text-3xl font-bold tracking-tight mb-2 font-sans text-black flex items-center gap-3">
+                        <AlertTriangle className="text-red-600 w-8 h-8" />
                         Active Incidents
                     </h1>
-                    <p className="text-zinc-500 font-mono text-sm">
+                    <p className="text-gray-700 font-mono text-sm">
                         Priority dispatch queue. {activeCount} High-Confidence events require immediate attention.
                     </p>
                 </div>
 
                 <div className="flex gap-4">
-                    <div className="bg-danger/10 border border-danger/20 px-6 py-3 rounded text-center min-w-25">
-                        <div className="text-3xl font-bold text-danger font-mono">{activeCount}</div>
-                        <div className="text-[10px] text-danger/70 uppercase tracking-widest mt-1">Critical</div>
+                    <div className="bg-red-50 border border-red-200 px-6 py-3 rounded text-center min-w-25">
+                        <div className="text-3xl font-bold text-red-600 font-mono">{activeCount}</div>
+                        <div className="text-[10px] text-red-600 uppercase tracking-widest mt-1">Critical</div>
                     </div>
-                    <div className="bg-warning/10 border border-warning/20 px-6 py-3 rounded text-center min-w-25">
-                        <div className="text-3xl font-bold text-warning font-mono">{investigatingCount}</div>
-                        <div className="text-[10px] text-warning/70 uppercase tracking-widest mt-1">Pending</div>
+                    <div className="bg-yellow-50 border border-yellow-200 px-6 py-3 rounded text-center min-w-25">
+                        <div className="text-3xl font-bold text-yellow-600 font-mono">{investigatingCount}</div>
+                        <div className="text-[10px] text-yellow-600 uppercase tracking-widest mt-1">Pending</div>
                     </div>
                 </div>
             </div>
 
             {/* --- Toolbar --- */}
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-surface border border-border p-2 rounded-lg">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-white border border-gray-200 p-2 rounded-lg shadow-sm">
                 <div className="flex gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0">
                     {["all", "active", "dispatched", "resolved"].map((f) => (
                         <button
@@ -242,7 +242,7 @@ export default function AlertsPage() {
                             onClick={() => setFilter(f)}
                             className={cn(
                                 "px-4 py-2 text-xs font-mono uppercase rounded transition-colors whitespace-nowrap",
-                                filter === f ? "bg-white text-black font-bold" : "text-zinc-500 hover:text-white hover:bg-white/5"
+                                filter === f ? "bg-gray-900 text-white font-bold" : "text-black hover:bg-gray-100"
                             )}
                         >
                             {f}
@@ -255,37 +255,37 @@ export default function AlertsPage() {
                         placeholder="Search Incident ID..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full md:w-64 bg-panel border border-border rounded py-2 pl-9 pr-4 text-xs font-mono text-white focus:border-acid focus:outline-none focus:ring-1 focus:ring-acid/50 transition-all"
+                        className="w-full md:w-64 bg-gray-50 border border-gray-200 rounded py-2 pl-9 pr-4 text-xs font-mono text-black focus:border-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400/50 transition-all"
                     />
-                    <Search className="w-3.5 h-3.5 text-zinc-500 absolute left-3 top-2.5" />
+                    <Search className="w-3.5 h-3.5 text-gray-500 absolute left-3 top-2.5" />
                 </div>
             </div>
 
             {/* --- List View --- */}
             <div className="space-y-4">
                 {filteredIncidents.length === 0 ? (
-                    <div className="text-center py-20 border border-dashed border-zinc-800 rounded-lg">
-                        <p className="text-zinc-500 font-mono text-sm">No incidents match your filter.</p>
+                    <div className="text-center py-20 border border-dashed border-gray-300 rounded-lg bg-gray-50">
+                        <p className="text-gray-700 font-mono text-sm">No incidents match your filter.</p>
                     </div>
                 ) : (
                     filteredIncidents.map((incident) => (
                         <div
                             key={incident.id}
-                            className="group bg-surface border border-border p-5 rounded-lg hover:border-zinc-600 transition-all flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden"
+                            className="group bg-white border border-gray-200 p-5 rounded-lg hover:border-gray-300 transition-all flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden shadow-sm"
                         >
                             {/* Status Indicator Strip */}
                             <div className={cn(
                                 "absolute left-0 top-0 bottom-0 w-1",
-                                incident.status === 'active' ? "bg-danger" :
-                                    incident.status === 'dispatched' ? "bg-warning" : "bg-success"
+                                incident.status === 'active' ? "bg-red-600" :
+                                    incident.status === 'dispatched' ? "bg-yellow-600" : "bg-green-600"
                             )} />
 
                             {/* Left: Info */}
                             <div className="flex items-center gap-6 w-full md:w-auto pl-2">
                                 <div className={cn(
                                     "w-12 h-12 rounded-full flex items-center justify-center shrink-0 border",
-                                    incident.status === "active" ? "bg-danger/10 text-danger border-danger/20 animate-pulse" :
-                                        incident.status === "dispatched" ? "bg-warning/10 text-warning border-warning/20" : "bg-success/10 text-success border-success/20"
+                                    incident.status === "active" ? "bg-red-100 text-red-600 border-red-200 animate-pulse" :
+                                        incident.status === "dispatched" ? "bg-yellow-100 text-yellow-600 border-yellow-200" : "bg-green-100 text-green-600 border-green-200"
                                 )}>
                                     {incident.status === "active" ? <Siren className="w-6 h-6" /> :
                                         incident.status === "dispatched" ? <Clock className="w-6 h-6" /> : <CheckCircle className="w-6 h-6" />}
@@ -293,19 +293,19 @@ export default function AlertsPage() {
 
                                 <div>
                                     <div className="flex items-center gap-3 mb-1">
-                                        <span className="font-mono text-white font-bold text-lg">{incident.id}</span>
+                                        <span className="font-mono text-black font-bold text-lg">{incident.id}</span>
                                         <span className={cn(
                                             "text-[10px] px-2 py-0.5 rounded font-mono uppercase border font-bold",
-                                            incident.status === "active" ? "bg-danger/10 border-danger/30 text-danger" :
-                                                incident.status === "dispatched" ? "bg-warning/10 border-warning/30 text-warning" : "bg-success/10 border-success/30 text-success"
+                                            incident.status === "active" ? "bg-red-100 border-red-300 text-red-700" :
+                                                incident.status === "dispatched" ? "bg-yellow-100 border-yellow-300 text-yellow-700" : "bg-green-100 border-green-300 text-green-700"
                                         )}>
                                             {incident.status}
                                         </span>
                                     </div>
-                                    <div className="flex flex-wrap items-center gap-4 text-xs text-zinc-500 font-mono">
+                                    <div className="flex flex-wrap items-center gap-4 text-xs text-gray-700 font-mono">
                                         <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {incident.time}</span>
                                         <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {incident.location}</span>
-                                        <span className="text-acid font-bold">AI Conf: {incident.confidence}%</span>
+                                        <span className="text-black font-bold">AI Conf: {incident.confidence}%</span>
                                     </div>
                                 </div>
                             </div>
@@ -314,7 +314,7 @@ export default function AlertsPage() {
                             <div className="flex gap-3 w-full md:w-auto">
                                 <button
                                     onClick={() => setSelectedIncident(incident)}
-                                    className="flex-1 md:flex-none px-5 py-2.5 border border-border bg-panel text-xs font-mono uppercase text-white hover:bg-white/5 transition-colors flex items-center justify-center gap-2"
+                                    className="flex-1 md:flex-none px-5 py-2.5 border border-gray-200 bg-gray-50 text-xs font-mono uppercase text-black hover:bg-gray-100 transition-colors flex items-center justify-center gap-2 rounded"
                                 >
                                     <FileText className="w-3 h-3" /> View Evidence
                                 </button>
@@ -322,7 +322,7 @@ export default function AlertsPage() {
                                 {incident.status === "active" && (
                                     <button
                                         onClick={() => handleDispatch(incident.id)}
-                                        className="flex-1 md:flex-none px-5 py-2.5 bg-white text-black text-xs font-mono font-bold uppercase hover:bg-zinc-200 transition-colors shadow-[0_0_15px_rgba(255,255,255,0.1)] flex items-center justify-center gap-2"
+                                        className="flex-1 md:flex-none px-5 py-2.5 bg-gray-900 text-white text-xs font-mono font-bold uppercase hover:bg-gray-800 transition-colors flex items-center justify-center gap-2 rounded"
                                     >
                                         Dispatch Team <ChevronRight className="w-3 h-3" />
                                     </button>
