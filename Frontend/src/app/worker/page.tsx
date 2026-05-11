@@ -2,8 +2,12 @@
 
 import { useState, useEffect } from "react";
 import LocationAwareMap from "@/features/map/LocationAwareMap";
+import RealTimeTelemetry from "@/components/telemetry/RealTimeTelemetry";
+import EmergencyAlerts from "@/components/notifications/EmergencyAlerts";
+import OfflineModeIndicator from "@/components/offline/OfflineModeIndicator";
 import { useToast } from "@/components/ui/Toast";
 import { useGeolocation } from "@/hooks/useGeolocation";
+import { useWorkOrders } from "@/hooks/useWorkOrders";
 import { 
   Zap, 
   MapPin, 
@@ -34,61 +38,7 @@ export default function WorkerDashboard() {
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const { showToast } = useToast();
   const { location, assignedArea, loading: geoLoading, error: geoError } = useGeolocation();
-  const [allWorkOrders, setAllWorkOrders] = useState<WorkOrder[]>([
-    {
-      id: "WO-001",
-      type: "emergency",
-      priority: "critical",
-      location: "Sector 4, Block 12",
-      poleId: "P-402",
-      description: "Transformer overload detected - immediate inspection required",
-      estimatedTime: "45 min",
-      status: "pending",
-      assignedAt: "10:15",
-      area: "Johannesburg"
-    },
-    {
-      id: "WO-002", 
-      type: "inspection",
-      priority: "medium",
-      location: "Sector 3, Block 8",
-      poleId: "P-318",
-      description: "Routine inspection after AI theft detection alert",
-      estimatedTime: "30 min",
-      status: "in_progress",
-      assignedAt: "09:30",
-      area: "Johannesburg"
-    },
-    {
-      id: "WO-003",
-      type: "maintenance",
-      priority: "low", 
-      location: "Sector 2, Block 4",
-      poleId: "P-215",
-      description: "Scheduled sensor calibration and maintenance",
-      estimatedTime: "60 min",
-      status: "pending",
-      assignedAt: "08:00",
-      area: "Durban"
-    },
-    {
-      id: "WO-004",
-      type: "emergency",
-      priority: "critical",
-      location: "Sector 1, Block 5",
-      poleId: "P-105",
-      description: "Power outage reported - urgent response needed",
-      estimatedTime: "30 min",
-      status: "pending",
-      assignedAt: "11:00",
-      area: "Cape Town"
-    }
-  ]);
-
-  // Filter work orders based on assigned geographic area
-  const workOrders = allWorkOrders.filter(order => 
-    assignedArea && order.area === assignedArea.name
-  );
+  const { workOrders, loading: workOrdersLoading, updateWorkOrderStatus } = useWorkOrders(assignedArea);
 
   const [workerStats, setWorkerStats] = useState({
     todayCompleted: 3,
@@ -102,21 +52,13 @@ export default function WorkerDashboard() {
     showToast(`Location selected: Pole ${id}`, "success");
   };
 
-  const handleStartWork = (orderId: string) => {
-    setAllWorkOrders((prev: WorkOrder[]) => prev.map((order: WorkOrder) => 
-      order.id === orderId 
-        ? { ...order, status: "in_progress" as const }
-        : order
-    ));
+  const handleStartWork = async (orderId: string) => {
+    await updateWorkOrderStatus(orderId, "in_progress");
     showToast(`Work order ${orderId} started`, "success");
   };
 
-  const handleCompleteWork = (orderId: string) => {
-    setAllWorkOrders((prev: WorkOrder[]) => prev.map((order: WorkOrder) => 
-      order.id === orderId 
-        ? { ...order, status: "completed" as const }
-        : order
-    ));
+  const handleCompleteWork = async (orderId: string) => {
+    await updateWorkOrderStatus(orderId, "completed");
     setWorkerStats(prev => ({ 
       ...prev, 
       todayCompleted: prev.todayCompleted + 1 
@@ -145,6 +87,7 @@ export default function WorkerDashboard() {
 
   return (
     <div className="p-6 md:p-12">
+      <OfflineModeIndicator />
       {/* Header */}
       <div className="flex justify-between items-end mb-8">
         <div>
@@ -161,7 +104,11 @@ export default function WorkerDashboard() {
           )}
         </div>
 
-        <div className="hidden md:flex gap-4">
+        <div className="hidden md:flex gap-4 items-center">
+          <EmergencyAlerts />
+          
+          <div className="h-10 w-px bg-border"></div>
+          
           <div className="text-right">
             <div className="text-[10px] font-mono text-dim uppercase">Today Completed</div>
             <div className="text-xl font-bold text-acid font-mono">{workerStats.todayCompleted}</div>
@@ -266,7 +213,15 @@ export default function WorkerDashboard() {
           </div>
         </div>
 
-        {/* Map View */}
+      {/* Real-Time Telemetry */}
+      <div className="border border-border bg-panel p-4 rounded-lg mb-6">
+        <h3 className="text-xs font-bold font-mono text-zinc-400 uppercase tracking-widest mb-4">
+          Live Telemetry Stream
+        </h3>
+        <RealTimeTelemetry assignedArea={assignedArea} />
+      </div>
+
+      {/* Map View */}
         <div className="border border-border bg-panel p-4 rounded-lg">
           <h3 className="text-xs font-bold font-mono text-zinc-400 uppercase tracking-widest mb-4">
             Location Map - {assignedArea ? `${assignedArea.name} Only` : 'Location Required'}

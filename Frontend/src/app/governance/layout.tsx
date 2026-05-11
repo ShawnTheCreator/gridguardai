@@ -1,6 +1,6 @@
 "use client";
 
-import { Sidebar } from "@/components/layout/GovernanceSidebar";
+import { GovernanceSidebar } from "@/components/layout/GovernanceSidebar";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function GovernanceLayout({
@@ -12,16 +12,16 @@ export default function GovernanceLayout({
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-void">
-        <div className="text-acid font-mono">Loading...</div>
+      <div className="flex h-screen items-center justify-center bg-gray-100">
+        <div className="text-black font-mono">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="flex h-screen bg-void">
-      <Sidebar />
-      <main className="flex-1 overflow-y-auto custom-scroll">
+    <div className="flex h-screen bg-gray-100">
+      <GovernanceSidebar />
+      <main className="flex-1 overflow-y-auto custom-scroll bg-gray-100">
         {children}
       </main>
     </div>

@@ -19,10 +19,10 @@ const DigitalTwinMap = dynamic<any>(() => import("./DigitalTwinMap"), {
 
 function MapSkeleton({ label }: { label: string }) {
   return (
-    <div className="w-full h-150 bg-panel border border-border rounded-lg flex items-center justify-center">
+    <div className="w-full h-150 bg-gray-100 border border-gray-200 rounded-lg flex items-center justify-center">
       <div className="flex flex-col items-center gap-4">
-        <div className="w-12 h-12 border-2 border-acid/20 border-t-acid rounded-full animate-spin" />
-        <span className="text-[10px] font-mono text-dim uppercase tracking-widest">{label}</span>
+        <div className="w-12 h-12 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+        <span className="text-[10px] font-mono text-gray-600 uppercase tracking-widest">{label}</span>
       </div>
     </div>
   );
@@ -37,12 +37,12 @@ export default function MapLoader(props: any) {
       {/* View Switcher */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <div className="flex bg-void/50 border border-border p-1 rounded-lg">
+          <div className="flex bg-white border border-gray-200 p-1 rounded-lg shadow-sm">
             <button
               onClick={() => setViewMode("2d")}
               className={cn(
                 "flex items-center gap-2 px-4 py-1.5 rounded-md text-[10px] font-mono uppercase tracking-wider transition-all",
-                viewMode === "2d" ? "bg-acid text-void font-bold shadow-[0_0_10px_#ccff0055]" : "text-zinc-500 hover:text-zinc-300"
+                viewMode === "2d" ? "bg-gray-200 text-black font-bold border border-gray-300" : "text-gray-600 hover:text-black hover:bg-gray-50"
               )}
             >
               <MapIcon className="w-3 h-3" />
@@ -52,7 +52,7 @@ export default function MapLoader(props: any) {
               onClick={() => setViewMode("3d")}
               className={cn(
                 "flex items-center gap-2 px-4 py-1.5 rounded-md text-[10px] font-mono uppercase tracking-wider transition-all",
-                viewMode === "3d" ? "bg-acid text-void font-bold shadow-[0_0_10px_#ccff0055]" : "text-zinc-500 hover:text-zinc-300"
+                viewMode === "3d" ? "bg-gray-200 text-black font-bold border border-gray-300" : "text-gray-600 hover:text-black hover:bg-gray-50"
               )}
             >
               <Box className="w-3 h-3" />
@@ -66,8 +66,8 @@ export default function MapLoader(props: any) {
             className={cn(
               "flex items-center gap-2 px-3 py-1.5 rounded-lg border text-[10px] font-mono uppercase tracking-widest transition-all",
               isColorMode 
-                ? "bg-blue-500/10 border-blue-500/50 text-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.2)]" 
-                : "bg-void/50 border-border text-zinc-500 hover:text-zinc-300"
+                ? "bg-gray-100 border-gray-300 text-black" 
+                : "bg-white border-gray-200 text-gray-600 hover:text-black hover:bg-gray-50"
             )}
           >
             <Layers className="w-3 h-3" />
@@ -78,12 +78,12 @@ export default function MapLoader(props: any) {
         {viewMode === "3d" && (
           <div className="flex items-center gap-4 animate-pulse">
             <div className="flex items-center gap-2">
-              <div className="w-1.5 h-1.5 rounded-full bg-acid" />
-              <span className="text-[9px] font-mono text-acid uppercase tracking-tighter">Google 3D Tiles Active</span>
+              <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+              <span className="text-[9px] font-mono text-gray-700 uppercase tracking-tighter">Google 3D Tiles Active</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-              <span className="text-[9px] font-mono text-blue-400 uppercase tracking-tighter">OpenSky Feed Live</span>
+              <span className="text-[9px] font-mono text-gray-700 uppercase tracking-tighter">OpenSky Feed Live</span>
             </div>
           </div>
         )}
@@ -91,7 +91,7 @@ export default function MapLoader(props: any) {
 
       {/* Map Container */}
       <div className="relative group">
-        <div className="absolute inset-0 bg-acid/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none rounded-lg" />
+        <div className="absolute inset-0 bg-gray-200/30 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none rounded-lg" />
         {viewMode === "2d" ? (
           <TacticalMap {...props} isColorMode={isColorMode} />
         ) : (

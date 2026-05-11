@@ -271,3 +271,47 @@ export interface ApiTheftEvent {
 export async function apiGetTheftHistory() {
     return request<ApiTheftEvent[]>("/api/reports/theft-history");
 }
+
+// --- Cookie Consent ---
+
+export interface CookieConsentStatus {
+    hasConsent: boolean;
+    essential: boolean;
+    analytics: boolean;
+    marketing: boolean;
+    consentDate?: string;
+}
+
+export interface CookieConsentRequest {
+    essential: boolean;
+    analytics: boolean;
+    marketing: boolean;
+}
+
+export async function apiGetCookieConsent(): Promise<CookieConsentStatus> {
+    return (await request<CookieConsentStatus>("/api/cookies/status")) || {
+        hasConsent: false,
+        essential: false,
+        analytics: false,
+        marketing: false,
+    };
+}
+
+export async function apiSetCookieConsent(consent: CookieConsentRequest) {
+    return request("/api/cookies/consent", {
+        method: "POST",
+        body: JSON.stringify(consent),
+    });
+}
+
+export async function apiRejectAllCookies() {
+    return request("/api/cookies/reject", {
+        method: "POST",
+    });
+}
+
+export async function apiResetCookieConsent() {
+    return request("/api/cookies/reset", {
+        method: "POST",
+    });
+}
