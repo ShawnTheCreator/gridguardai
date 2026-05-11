@@ -50,4 +50,90 @@ public class TelemetryController : ControllerBase
 
         return Ok(data);
     }
+
+    // GET: api/telemetry/ghost-load
+    // Returns real-time energy balancing data for ghost load detection
+    [HttpGet("ghost-load")]
+    public async Task<IActionResult> GetGhostLoadData()
+    {
+        // Get recent telemetry data
+        var telemetry = await _context.Telemetry
+            .OrderByDescending(t => t.Time)
+            .Take(20)
+            .ToListAsync();
+
+        var data = new List<GhostLoadDataPoint>();
+
+        if (telemetry.Any())
+        {
+            // Reverse to get chronological order
+            telemetry = telemetry.OrderBy(t => t.Time).ToList();
+
+            foreach (var t in telemetry)
+            {
+                var supply = t.Current;  // Total supply current
+                var metered = t.Current * 0.95; // Simulated metered (95% of supply is normal)
+
+                data.Add(new GhostLoadDataPoint
+                {
+                    Time = t.Time.ToString("HH:mm"),
+                    Supply = Math.Round(supply, 2),
+                    Metered = Math.Round(metered, 2)
+                });
+            }
+        }
+        else
+        {
+            // Generate sample data if no real data
+            var now = DateTime.UtcNow;
+            for (int i = 19; i >= 0; i--)
+            {
+                var time = now.AddMinutes(-i);
+                var baseLoad = 40 + Random.Shared.NextDouble() * 5;
+                var supply = baseLoad + Random.Shared.NextDouble() * 2;
+                var metered = baseLoad - Random.Shared.NextDouble() * 2;
+
+                data.Add(new GhostLoadDataPoint
+                {
+                    Time = time.ToString("HH:mm"),
+                    Supply = Math.Round(supply, 2),
+                    Metered = Math.Round(metered, 2)
+                });
+            }
+        }
+
+        return Ok(data);
+    }
+
+    // GET: api/telemetry/harmonics
+    // Returns harmonic distortion analysis data
+    [HttpGet("harmonics")]
+    public IActionResult GetHarmonicData()
+    {
+        var data = new List<HarmonicDataPoint>
+        {
+            new() { Name = "Fund", Value = 100 },   // Fundamental frequency
+            new() { Name = "3rd", Value = 12 },     // 3rd harmonic
+            new() { Name = "5th", Value = 28 },     // 5th harmonic - HIGH
+            new() { Name = "7th", Value = 8 },      // 7th harmonic
+            new() { Name = "9th", Value = 5 },      // 9th harmonic
+            new() { Name = "11th", Value = 2 }      // 11th harmonic
+        };
+
+        return Ok(data);
+    }
+}
+
+// DTO Classes
+public class GhostLoadDataPoint
+{
+    public string Time { get; set; } = string.Empty;
+    public double Supply { get; set; }
+    public double Metered { get; set; }
+}
+
+public class HarmonicDataPoint
+{
+    public string Name { get; set; } = string.Empty;
+    public int Value { get; set; }
 }
