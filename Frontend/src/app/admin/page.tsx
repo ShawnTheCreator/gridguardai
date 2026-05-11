@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import MapLoader from "@/features/map/MapLoader";
 import { ControlDrawer } from "@/features/control/ControlDrawer";
-import { GhostLoadChart } from "@/features/monitor/GhostLoadChart";
+import { WaveformForensics } from "@/features/monitor/WaveformForensics";
+import { EdgeEventLog } from "@/features/monitor/EdgeEventLog";
 import { useToast } from "@/components/ui/Toast";
 import { 
   apiGetDashboardSummary, 
@@ -104,12 +105,14 @@ export default function DashboardPage() {
 
         <div className="hidden md:flex gap-6">
           <div className="text-right px-4 py-2 bg-white rounded-lg border border-gray-200">
-            <div className="text-[10px] font-mono text-gray-500 uppercase">Total Sector Load</div>
-            <div className="text-xl font-bold text-black font-mono">{totalSectorLoad} <span className="text-xs text-gray-500">MW</span></div>
+            <div className="text-[10px] font-mono text-gray-500 uppercase">Est. Revenue Recovery</div>
+            <div className="text-xl font-bold text-green-600 font-mono">{activeLosses} <span className="text-xs text-gray-500">/hr</span></div>
+            <div className="text-[9px] font-mono text-gray-400 mt-1">Ghost load × tariff</div>
           </div>
           <div className="text-right px-4 py-2 bg-white rounded-lg border border-gray-200">
-            <div className="text-[10px] font-mono text-gray-500 uppercase">Active Losses</div>
-            <div className="text-xl font-bold text-red-600 font-mono">{activeLosses} <span className="text-xs text-gray-500">/hr</span></div>
+            <div className="text-[10px] font-mono text-gray-500 uppercase">Transformers at Risk</div>
+            <div className="text-xl font-bold text-orange-600 font-mono">3 <span className="text-xs text-gray-500">units</span></div>
+            <div className="text-[9px] font-mono text-gray-400 mt-1">IEEE C57.91 &gt; 110°C</div>
           </div>
         </div>
       </div>
@@ -119,61 +122,44 @@ export default function DashboardPage() {
         <MapLoader onPoleClick={handleNodeClick} />
       </div>
 
-      {/* Analytics Row */}
+      {/* Analytics Row - Edge-Computed Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
-          <div className="text-xs font-medium text-gray-600 uppercase mb-2">AI Theft Confidence</div>
+          <div className="text-xs font-medium text-gray-600 uppercase mb-2">TinyML Theft Confidence</div>
           <div className="text-2xl font-bold text-green-600">94.01%</div>
-          <div className="text-xs text-gray-500 mt-2">Based on CNN-XGBoost signature matching</div>
+          <div className="text-xs text-gray-500 mt-2">8-bit quantized NN on ESP32-S3</div>
+          <div className="text-[9px] font-mono text-blue-600 mt-1">Edge-computed • No cloud ML</div>
         </div>
         <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
-          <div className="text-xs font-medium text-gray-600 uppercase mb-2">Thermal Overload Risk</div>
+          <div className="text-xs font-medium text-gray-600 uppercase mb-2">IEEE C57.91 Thermal Risk</div>
           <div className="text-2xl font-bold text-yellow-600">Medium</div>
-          <div className="text-xs text-gray-500 mt-2">3 Transformers at 85%+ capacity</div>
+          <div className="text-xs text-gray-500 mt-2">Hot-spot rising toward 110°C</div>
+          <div className="text-[9px] font-mono text-orange-600 mt-1">Insulation life degrading</div>
         </div>
-        <div className="md:col-span-2 bg-white p-5 rounded-lg border border-gray-200 shadow-sm flex items-center justify-between">
-          <div>
-            <div className="text-xs font-medium text-gray-600 uppercase mb-2">Auto-Isolation Status</div>
-            <div className="text-sm font-bold text-black flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-green-500"></span>
-              Ready / Armed
-            </div>
+        <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
+          <div className="text-xs font-medium text-gray-600 uppercase mb-2">Grid Topology</div>
+          <div className="text-2xl font-bold text-blue-600">Mixed</div>
+          <div className="text-xs text-gray-500 mt-2">Isolated: 12 | Shared: 1,228</div>
+          <div className="text-[9px] font-mono text-gray-400 mt-1">Determines Cut vs Dispatch</div>
+        </div>
+        <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm flex flex-col justify-center">
+          <div className="text-xs font-medium text-gray-600 uppercase mb-2">ESP-NOW Mesh Status</div>
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+            <span className="text-sm font-bold text-black">1,240 Nodes Online</span>
           </div>
-          <button
-            onClick={handleEmergencyOverride}
-            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium text-sm rounded-lg transition-colors shadow-sm"
-          >
-            Emergency Override
-          </button>
+          <div className="text-[9px] font-mono text-gray-500 mt-2">Heartbeat: 30s interval</div>
         </div>
       </div>
 
-      {/* Telemetry Section */}
+      {/* Live Waveform Forensics + Edge Event Log */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         <div className="lg:col-span-2">
-          <GhostLoadChart />
+          <WaveformForensics poleId={selectedNodeId || "P-042"} />
         </div>
 
-        <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm flex flex-col">
-          <h3 className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-4">
-            Live Event Log
-          </h3>
-          <div className="flex-1 space-y-3 overflow-hidden">
-            {[
-              { time: "10:34", msg: "Energy Balance Normal", sub: "Pole TR-04 stable", status: "normal" },
-              { time: "10:33", msg: "Load Fluctuation Detected", sub: "Pole TR-12 monitoring", status: "warning" },
-              { time: "10:32", msg: "Energy Balance Normal", sub: "Pole TR-04 stable", status: "normal" },
-            ].map((log, i) => (
-              <div key={i} className="flex gap-3 text-sm border-b border-gray-100 pb-3 last:border-0">
-                <span className="font-mono text-gray-500 text-xs">{log.time}</span>
-                <div className="flex-1">
-                  <span className={`block font-medium ${log.status === 'warning' ? 'text-yellow-600' : 'text-black'}`}>{log.msg}</span>
-                  <span className="text-gray-500 text-xs">{log.sub}</span>
-                </div>
-                <span className={`w-2 h-2 rounded-full mt-1 ${log.status === 'warning' ? 'bg-yellow-500' : 'bg-green-500'}`}></span>
-              </div>
-            ))}
-          </div>
+        <div className="h-full">
+          <EdgeEventLog className="h-[350px]" />
         </div>
       </div>
 
