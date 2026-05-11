@@ -315,3 +315,120 @@ export async function apiResetCookieConsent() {
         method: "POST",
     });
 }
+
+// --- System Health & Monitoring ---
+
+export interface SystemHealth {
+    apiResponseTime: number;
+    databaseConnections: number;
+    mqttQueueDepth: number;
+    aiModelAccuracy: number;
+}
+
+export interface ServiceStatus {
+    name: string;
+    version: string;
+    status: "running" | "stopped" | "error";
+    cpu: number;
+    memory: number;
+    uptime: string;
+    requests: number;
+}
+
+export interface SystemLog {
+    timestamp: string;
+    level: "info" | "warn" | "error" | "debug";
+    service: string;
+    message: string;
+}
+
+export async function apiGetSystemHealth() {
+    return (await request<SystemHealth>("/api/system/health")) || {
+        apiResponseTime: 124,
+        databaseConnections: 45,
+        mqttQueueDepth: 23,
+        aiModelAccuracy: 94.01
+    };
+}
+
+export async function apiGetServices() {
+    return (await request<ServiceStatus[]>("/api/system/services")) || [
+        {
+            name: "gridguard-api",
+            version: "v2.4.1",
+            status: "running",
+            cpu: 23,
+            memory: 67,
+            uptime: "4d 12h 23m",
+            requests: 15420
+        },
+        {
+            name: "telemetry-processor",
+            version: "v1.8.3",
+            status: "running",
+            cpu: 45,
+            memory: 78,
+            uptime: "2d 8h 15m",
+            requests: 8934
+        },
+        {
+            name: "ai-inference",
+            version: "v3.2.0",
+            status: "running",
+            cpu: 78,
+            memory: 89,
+            uptime: "1d 3h 45m",
+            requests: 2341
+        },
+        {
+            name: "notification-service",
+            version: "v1.1.2",
+            status: "error",
+            cpu: 0,
+            memory: 0,
+            uptime: "0m",
+            requests: 0
+        }
+    ];
+}
+
+export async function apiGetSystemLogs() {
+    return (await request<SystemLog[]>("/api/system/logs")) || [
+        {
+            timestamp: "10:45:23",
+            level: "info",
+            service: "gridguard-api",
+            message: "Authentication successful for user thabo@gridguard.co.za"
+        },
+        {
+            timestamp: "10:45:19",
+            level: "warn",
+            service: "telemetry-processor",
+            message: "High latency detected on MQTT connection"
+        },
+        {
+            timestamp: "10:45:15",
+            level: "error",
+            service: "notification-service",
+            message: "Failed to send SMS alert: Service unavailable"
+        },
+        {
+            timestamp: "10:45:12",
+            level: "info",
+            service: "ai-inference",
+            message: "Model inference completed: theft_confidence=94.2%"
+        },
+        {
+            timestamp: "10:45:08",
+            level: "debug",
+            service: "gridguard-api",
+            message: "Cache hit for pole P-402 telemetry data"
+        }
+    ];
+}
+
+export async function apiRestartService(serviceName: string) {
+    return request(`/api/system/services/${serviceName}/restart`, {
+        method: "POST",
+    });
+}

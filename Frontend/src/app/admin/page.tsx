@@ -5,7 +5,14 @@ import MapLoader from "@/features/map/MapLoader";
 import { ControlDrawer } from "@/features/control/ControlDrawer";
 import { GhostLoadChart } from "@/features/monitor/GhostLoadChart";
 import { useToast } from "@/components/ui/Toast";
-import { apiGetDashboardSummary } from "@/lib/api";
+import { 
+  apiGetDashboardSummary, 
+  apiGetAssets, 
+  apiGetIncidents,
+  apiGetRecentTelemetry,
+  type ApiAsset,
+  type ApiIncident
+} from "@/lib/api";
 
 export default function DashboardPage() {
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
@@ -15,18 +22,46 @@ export default function DashboardPage() {
   const [activeLosses, setActiveLosses] = useState("R12,450");
   const [totalNodes, setTotalNodes] = useState("1,240");
   const [activeAlerts, setActiveAlerts] = useState("2");
+  const [assets, setAssets] = useState<ApiAsset[]>([]);
+  const [incidents, setIncidents] = useState<ApiIncident[]>([]);
+  const [telemetry, setTelemetry] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
+      setLoading(true);
       try {
-        const summary = await apiGetDashboardSummary();
+        const [summary, assetsData, incidentsData, telemetryData] = await Promise.all([
+          apiGetDashboardSummary(),
+          apiGetAssets(),
+          apiGetIncidents(),
+          apiGetRecentTelemetry()
+        ]);
+
         if (summary) {
           setTotalSectorLoad(summary.totalSectorLoad.toString());
           setActiveLosses(`R${summary.activeLosses.toLocaleString()}`);
           setTotalNodes(summary.totalNodes.toLocaleString());
           setActiveAlerts(summary.activeAlerts.toString());
         }
-      } catch { /* keep hardcoded values */ }
+
+        if (assetsData) {
+          setAssets(assetsData);
+        }
+
+        if (incidentsData) {
+          setIncidents(incidentsData);
+        }
+
+        if (telemetryData) {
+          setTelemetry(telemetryData);
+        }
+      } catch (error) {
+        console.error("Failed to load dashboard data:", error);
+        /* keep hardcoded values on error */
+      } finally {
+        setLoading(false);
+      }
     })();
   }, []);
 
@@ -38,6 +73,17 @@ export default function DashboardPage() {
   const handleEmergencyOverride = () => {
     showToast("EMERGENCY OVERRIDE INITIATED: SECTOR 4 ISOLATING...", "error");
   };
+
+  if (loading) {
+    return (
+      <div className="p-6 md:p-12 bg-gray-100 min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+          <div className="text-gray-600 font-mono">Loading dashboard data...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 md:p-12 bg-gray-100 min-h-screen">

@@ -3,6 +3,15 @@
 import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/Toast";
 import { 
+  apiGetSystemHealth, 
+  apiGetServices, 
+  apiGetSystemLogs, 
+  apiRestartService,
+  type SystemHealth,
+  type ServiceStatus,
+  type SystemLog
+} from "@/lib/api";
+import { 
   Terminal, 
   Database, 
   Cloud, 
@@ -61,72 +70,11 @@ export default function DeveloperDashboard() {
   const { showToast } = useToast();
   const [selectedService, setSelectedService] = useState<string | null>(null);
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [loading, setLoading] = useState(true);
 
-  const [systemMetrics, setSystemMetrics] = useState<SystemMetric[]>([
-    {
-      name: "API Response Time",
-      value: "124ms",
-      status: "healthy",
-      lastUpdated: "2 min ago"
-    },
-    {
-      name: "Database Connections",
-      value: "45/100",
-      status: "healthy",
-      lastUpdated: "1 min ago"
-    },
-    {
-      name: "MQTT Queue Depth",
-      value: "23",
-      status: "warning",
-      lastUpdated: "30 sec ago"
-    },
-    {
-      name: "AI Model Accuracy",
-      value: "94.01%",
-      status: "healthy",
-      lastUpdated: "5 min ago"
-    }
-  ]);
+  const [systemMetrics, setSystemMetrics] = useState<SystemMetric[]>([]);
 
-  const [services, setServices] = useState<ServiceStatus[]>([
-    {
-      name: "gridguard-api",
-      version: "v2.4.1",
-      status: "running",
-      cpu: 23,
-      memory: 67,
-      uptime: "4d 12h 23m",
-      requests: 15420
-    },
-    {
-      name: "telemetry-processor",
-      version: "v1.8.3",
-      status: "running",
-      cpu: 45,
-      memory: 78,
-      uptime: "2d 8h 15m",
-      requests: 8934
-    },
-    {
-      name: "ai-inference",
-      version: "v3.2.0",
-      status: "running",
-      cpu: 78,
-      memory: 89,
-      uptime: "1d 3h 45m",
-      requests: 2341
-    },
-    {
-      name: "notification-service",
-      version: "v1.1.2",
-      status: "error",
-      cpu: 0,
-      memory: 0,
-      uptime: "0m",
-      requests: 0
-    }
-  ]);
+  const [services, setServices] = useState<ServiceStatus[]>([]);
 
   const [deployment] = useState<DeploymentInfo>({
     environment: "production",
@@ -136,38 +84,7 @@ export default function DeveloperDashboard() {
     commitHash: "a7f3d9e"
   });
 
-  const [logs, setLogs] = useState<LogEntry[]>([
-    {
-      timestamp: "10:45:23",
-      level: "info",
-      service: "gridguard-api",
-      message: "Authentication successful for user thabo@gridguard.co.za"
-    },
-    {
-      timestamp: "10:45:19",
-      level: "warn",
-      service: "telemetry-processor",
-      message: "High latency detected on MQTT connection"
-    },
-    {
-      timestamp: "10:45:15",
-      level: "error",
-      service: "notification-service",
-      message: "Failed to send SMS alert: Service unavailable"
-    },
-    {
-      timestamp: "10:45:12",
-      level: "info",
-      service: "ai-inference",
-      message: "Model inference completed: theft_confidence=94.2%"
-    },
-    {
-      timestamp: "10:45:08",
-      level: "debug",
-      service: "gridguard-api",
-      message: "Cache hit for pole P-402 telemetry data"
-    }
-  ]);
+  const [logs, setLogs] = useState<SystemLog[]>([]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -191,22 +108,110 @@ export default function DeveloperDashboard() {
     }
   };
 
-  const handleRestartService = (serviceName: string) => {
+  const handleRestartService = async (serviceName: string) => {
     showToast(`Restarting ${serviceName}...`, "success");
-    // Simulate service restart
-    setTimeout(() => {
-      setServices(prev => prev.map(service => 
-        service.name === serviceName 
-          ? { ...service, status: "running" as const, cpu: Math.random() * 50, memory: Math.random() * 80 + 20 }
-          : service
-      ));
-      showToast(`${serviceName} restarted successfully`, "success");
-    }, 2000);
+    try {
+      const result = await apiRestartService(serviceName);
+      if (result) {
+        setServices(prev => prev.map(service => 
+          service.name === serviceName 
+            ? { ...service, status: "running" as const, cpu: Math.random() * 50, memory: Math.random() * 80 + 20 }
+            : service
+        ));
+        showToast(`${serviceName} restarted successfully`, "success");
+      } else {
+        // Fallback to simulation
+        setTimeout(() => {
+          setServices(prev => prev.map(service => 
+            service.name === serviceName 
+              ? { ...service, status: "running" as const, cpu: Math.random() * 50, memory: Math.random() * 80 + 20 }
+              : service
+          ));
+          showToast(`${serviceName} restarted successfully`, "success");
+        }, 2000);
+      }
+    } catch (error) {
+      showToast(`Failed to restart ${serviceName}`, "error");
+    }
   };
+
+  // Load data from API
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        const [healthData, servicesData, logsData] = await Promise.all([
+          apiGetSystemHealth(),
+          apiGetServices(),
+          apiGetSystemLogs()
+        ]);
+
+        if (healthData) {
+          setSystemMetrics([
+            {
+              name: "API Response Time",
+              value: `${healthData.apiResponseTime}ms`,
+              status: healthData.apiResponseTime < 200 ? "healthy" : "warning",
+              lastUpdated: "2 min ago"
+            },
+            {
+              name: "Database Connections",
+              value: `${healthData.databaseConnections}/100`,
+              status: healthData.databaseConnections < 80 ? "healthy" : "warning",
+              lastUpdated: "1 min ago"
+            },
+            {
+              name: "MQTT Queue Depth",
+              value: healthData.mqttQueueDepth.toString(),
+              status: healthData.mqttQueueDepth < 50 ? "healthy" : "warning",
+              lastUpdated: "30 sec ago"
+            },
+            {
+              name: "AI Model Accuracy",
+              value: `${healthData.aiModelAccuracy}%`,
+              status: healthData.aiModelAccuracy > 90 ? "healthy" : "warning",
+              lastUpdated: "5 min ago"
+            }
+          ]);
+        }
+
+        if (servicesData) {
+          setServices(servicesData);
+        }
+
+        if (logsData) {
+          setLogs(logsData);
+        }
+      } catch (error) {
+        console.error("Failed to load system data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+
+    // Set up auto-refresh
+    if (autoRefresh) {
+      const interval = setInterval(loadData, 30000); // Refresh every 30 seconds
+      return () => clearInterval(interval);
+    }
+  }, [autoRefresh]);
 
   const handleDeploy = () => {
     showToast("Initiating deployment pipeline...", "success");
   };
+
+  if (loading) {
+    return (
+      <div className="p-6 md:p-12 flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+          <div className="text-gray-600 font-mono">Loading system data...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 md:p-12">
