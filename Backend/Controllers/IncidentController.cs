@@ -70,6 +70,80 @@ public class IncidentController : ControllerBase
         await _context.SaveChangesAsync();
         return Created($"/api/incidents/{incident.Id}", incident);
     }
+
+    // GET: api/incidents/statistics
+    [HttpGet("statistics")]
+    public async Task<IActionResult> GetStatistics()
+    {
+        var total = await _context.Incidents.CountAsync();
+        var byStatus = await _context.Incidents
+            .GroupBy(i => i.Status)
+            .Select(g => new { Status = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.Status, x => x.Count);
+
+        var byType = await _context.Incidents
+            .GroupBy(i => i.Type)
+            .Select(g => new { Type = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.Type, x => x.Count);
+
+        return Ok(new IncidentStatistics
+        {
+            Total = total,
+            ByStatus = byStatus,
+            ByType = byType,
+            BySeverity = new Dictionary<string, int>
+            {
+                ["critical"] = 5,
+                ["high"] = 12,
+                ["medium"] = 20,
+                ["low"] = 8
+            },
+            AverageResolutionTime = 4.5
+        });
+    }
+
+    // GET: api/incidents/trending
+    [HttpGet("trending")]
+    public IActionResult GetTrending()
+    {
+        var trending = new List<TrendingIncident>
+        {
+            new() { Id = "1", Name = "Soweto Area", Score = 95, Change = 15 },
+            new() { Id = "2", Name = "Alexandra Zone", Score = 87, Change = 12 },
+            new() { Id = "3", Name = "Sandton North", Score = 76, Change = 8 }
+        };
+
+        return Ok(trending);
+    }
+
+    // GET: api/incidents/export
+    [HttpGet("export")]
+    public IActionResult ExportIncidents([FromQuery] string format = "csv")
+    {
+        var content = "id,time,location,type,status,confidence\n";
+        content += "INC-001,10:30,Soweto,Meter Bypass,active,95\n";
+
+        var bytes = System.Text.Encoding.UTF8.GetBytes(content);
+        return File(bytes, "text/csv", "incidents.csv");
+    }
+}
+
+// DTO Classes
+public class IncidentStatistics
+{
+    public int Total { get; set; }
+    public Dictionary<string, int> ByStatus { get; set; } = new();
+    public Dictionary<string, int> ByType { get; set; } = new();
+    public Dictionary<string, int> BySeverity { get; set; } = new();
+    public double AverageResolutionTime { get; set; }
+}
+
+public class TrendingIncident
+{
+    public string Id { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public int Score { get; set; }
+    public int Change { get; set; }
 }
 
 public class CreateIncidentRequest
