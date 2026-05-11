@@ -41,16 +41,6 @@ interface SystemMetric {
   lastUpdated: string;
 }
 
-interface ServiceStatus {
-  name: string;
-  version: string;
-  status: "running" | "stopped" | "error";
-  cpu: number;
-  memory: number;
-  uptime: string;
-  requests: number;
-}
-
 interface DeploymentInfo {
   environment: string;
   version: string;
