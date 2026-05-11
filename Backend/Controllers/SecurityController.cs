@@ -302,7 +302,3 @@ public class AuditFilters
     public string? StartDate { get; set; }
     public string? EndDate { get; set; }
 }
-
-// Need these
-using Microsoft.AspNetCore.Authorization;
-using System.Security.Claims;

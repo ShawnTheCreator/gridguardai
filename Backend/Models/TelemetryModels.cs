@@ -11,6 +11,15 @@ namespace Backend.Models
         public float differential { get; set; }
         public bool potential_theft { get; set; }
         public float anomaly_score { get; set; }
+        
+        // ESP32 Edge Device Diagnostics - optional fields from hardware
+        public string? device_id { get; set; }
+        public int? wifi_rssi { get; set; }
+        public float? device_temp { get; set; }
+        public string? firmware_version { get; set; }
+        public int? mqtt_queue_depth { get; set; }
+        public float? cpu_utilization { get; set; }
+        public float? uptime_hours { get; set; }
     }
 
     public class AnalysisRequest

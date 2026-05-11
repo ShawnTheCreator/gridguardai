@@ -432,3 +432,59 @@ export async function apiRestartService(serviceName: string) {
         method: "POST",
     });
 }
+
+// --- Edge Devices (ESP32) ---
+
+export interface ApiEdgeDevice {
+    deviceId: string;
+    poleId: string;
+    signalStrength: number;
+    temperature: number;
+    firmwareVersion: string;
+    mqttQueueDepth: number;
+    status: string;
+    lastSeen: string;
+    cpuUtilization: number;
+    uptimeHours: number;
+}
+
+export interface ApiEdgeDeviceSummary {
+    totalDevices: number;
+    onlineDevices: number;
+    offlineDevices: number;
+    warningDevices: number;
+    avgSignalStrength: number;
+    avgTemperature: number;
+    firmwareVersions: string[];
+}
+
+export async function apiGetEdgeDevices() {
+    return (await request<ApiEdgeDevice[]>("/api/edgedevice")) || [{
+        deviceId: "esp32-pole-001",
+        poleId: "P-001",
+        signalStrength: -64,
+        temperature: 42.0,
+        firmwareVersion: "GG-WIFI-AX-1.4.2",
+        mqttQueueDepth: 0,
+        status: "online",
+        lastSeen: new Date().toISOString(),
+        cpuUtilization: 15.0,
+        uptimeHours: 48.5
+    }];
+}
+
+export async function apiGetEdgeDevice(deviceId: string) {
+    return request<ApiEdgeDevice>(`/api/edgedevice/${deviceId}`);
+}
+
+export async function apiGetEdgeDeviceSummary() {
+    return (await request<ApiEdgeDeviceSummary>("/api/edgedevice/summary")) || {
+        totalDevices: 1,
+        onlineDevices: 1,
+        offlineDevices: 0,
+        warningDevices: 0,
+        avgSignalStrength: -64,
+        avgTemperature: 42.0,
+        firmwareVersions: ["GG-WIFI-AX-1.4.2"]
+    };
+}

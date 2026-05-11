@@ -1,10 +1,10 @@
 /**
- * useSignalR — connects to the GridGuard SignalR hub and listens for theft alerts.
+ * useSignalR — connects to the GridGuard SignalR hub and listens for theft alerts and ESP32 updates.
  * Install: npm install @microsoft/signalr
  */
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import * as signalR from "@microsoft/signalr";
 
 export interface TheftAlert {
@@ -15,15 +15,37 @@ export interface TheftAlert {
     timestamp: string;
 }
 
+export interface EdgeDeviceUpdate {
+    deviceId: string;
+    poleId: string;
+    signalStrength: number;
+    temperature: number;
+    firmwareVersion: string;
+    mqttQueueDepth: number;
+    status: "online" | "offline" | "warning";
+    lastSeen: string;
+    cpuUtilization: number;
+    uptimeHours: number;
+}
+
 const HUB_URL =
     process.env.NEXT_PUBLIC_API_URL
         ? `${process.env.NEXT_PUBLIC_API_URL}/hubs/gridguard`
         : "http://localhost:5000/hubs/gridguard";
 
-export function useSignalR() {
+export function useSignalR(
+    onEdgeDeviceUpdate?: (update: EdgeDeviceUpdate) => void
+) {
     const [latestAlert, setLatestAlert] = useState<TheftAlert | null>(null);
+    const [latestEdgeDevice, setLatestEdgeDevice] = useState<EdgeDeviceUpdate | null>(null);
     const [connectionStatus, setConnectionStatus] = useState<"connecting" | "connected" | "disconnected">("connecting");
     const connectionRef = useRef<signalR.HubConnection | null>(null);
+    const onEdgeDeviceUpdateRef = useRef(onEdgeDeviceUpdate);
+
+    // Keep the callback ref up to date
+    useEffect(() => {
+        onEdgeDeviceUpdateRef.current = onEdgeDeviceUpdate;
+    }, [onEdgeDeviceUpdate]);
 
     useEffect(() => {
         const connection = new signalR.HubConnectionBuilder()
@@ -40,6 +62,11 @@ export function useSignalR() {
             setLatestAlert(alert);
         });
 
+        connection.on("EdgeDeviceUpdate", (update: EdgeDeviceUpdate) => {
+            setLatestEdgeDevice(update);
+            onEdgeDeviceUpdateRef.current?.(update);
+        });
+
         connection.onreconnecting(() => setConnectionStatus("connecting"));
         connection.onreconnected(() => setConnectionStatus("connected"));
         connection.onclose(() => setConnectionStatus("disconnected"));
@@ -54,5 +81,5 @@ export function useSignalR() {
         };
     }, []);
 
-    return { latestAlert, connectionStatus };
+    return { latestAlert, latestEdgeDevice, connectionStatus };
 }

@@ -1,3 +1,4 @@
+using Backend.Models;
 using Microsoft.AspNetCore.SignalR;
 
 namespace Backend.Hubs;
@@ -52,6 +53,17 @@ public class GridGuardHub : Hub
         GridGuardAlertPayload alert)
     {
         await hubContext.Clients.All.SendAsync("TheftAlert", alert);
+    }
+
+    /// <summary>
+    /// Broadcasts ESP32 edge device status updates to ALL connected dashboard clients.
+    /// Called by <see cref="Services.GridGuardOrchestrator"/> when telemetry with device diagnostics is received.
+    /// </summary>
+    public static async Task BroadcastEdgeDeviceUpdateAsync(
+        IHubContext<GridGuardHub> hubContext,
+        EdgeDevicePayload payload)
+    {
+        await hubContext.Clients.All.SendAsync("EdgeDeviceUpdate", payload);
     }
 }
 

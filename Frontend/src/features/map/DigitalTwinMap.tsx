@@ -14,6 +14,7 @@ import {
   Wifi,
   Thermometer
 } from "lucide-react";
+import { useEdgeDevices } from "@/hooks/useEdgeDevices";
 
 /**
  * DIGITAL TWIN MAP (HIGH-FIDELITY SIMULATION)
@@ -22,10 +23,22 @@ import {
  * 1. Google 3D Tiles integration concepts
  * 2. Real-time Flight tracking (OpenSky/ADS-B)
  * 3. Grid Infrastructure Assets in 3D space
+ * 4. Live ESP32 edge device telemetry from backend
  */
 
 export default function DigitalTwinMap({ isColorMode = false }: { isColorMode?: boolean }) {
   const [bootSequence, setBootSequence] = useState(0);
+  const { devices, loading, connectionStatus } = useEdgeDevices();
+  
+  // Use first device or fallback to demo data
+  const device = devices[0] || {
+    deviceId: "esp32-pole-001",
+    signalStrength: -64,
+    temperature: 42.0,
+    firmwareVersion: "GG-WIFI-AX-1.4.2",
+    mqttQueueDepth: 0,
+    status: "online"
+  };
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -143,12 +156,15 @@ export default function DigitalTwinMap({ isColorMode = false }: { isColorMode?: 
 
       {/* HUD: Right Side - Asset Scanning & Hardware */}
       <div className="absolute top-6 right-6 z-10 w-64 space-y-4 text-white">
-        {/* ESP32 Hardware Diagnostics */}
+        {/* ESP32 Hardware Diagnostics - Live from Backend */}
         <div className="bg-void/90 backdrop-blur-xl border border-blue-500/30 p-4 rounded-lg shadow-[0_0_15px_rgba(59,130,246,0.1)]">
           <div className="flex justify-between items-center mb-3">
             <div className="text-[10px] font-mono text-blue-400 uppercase tracking-widest flex items-center gap-2 font-bold">
               <Cpu className="w-3.5 h-3.5" />
               ESP32 Node v2
+              {connectionStatus === "connected" && (
+                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse ml-1" title="Live" />
+              )}
             </div>
             <div className="flex gap-1">
               <div className="w-1 h-1 rounded-full bg-blue-500 animate-ping" />
@@ -160,15 +176,15 @@ export default function DigitalTwinMap({ isColorMode = false }: { isColorMode?: 
             <div className="bg-white/5 p-2 rounded border border-white/5">
               <div className="text-[8px] text-zinc-500 uppercase font-mono mb-1">Signal</div>
               <div className="flex items-center gap-1.5">
-                <Wifi className="w-3 h-3 text-success" />
-                <span className="text-xs font-mono">-64dBm</span>
+                <Wifi className={`w-3 h-3 ${device.signalStrength > -70 ? 'text-success' : device.signalStrength > -80 ? 'text-yellow-400' : 'text-red-400'}`} />
+                <span className="text-xs font-mono">{device.signalStrength}dBm</span>
               </div>
             </div>
             <div className="bg-white/5 p-2 rounded border border-white/5">
               <div className="text-[8px] text-zinc-500 uppercase font-mono mb-1">Temp</div>
               <div className="flex items-center gap-1.5">
-                <Thermometer className="w-3 h-3 text-orange-400" />
-                <span className="text-xs font-mono">42°C</span>
+                <Thermometer className={`w-3 h-3 ${device.temperature > 60 ? 'text-red-400' : device.temperature > 50 ? 'text-orange-400' : 'text-green-400'}`} />
+                <span className="text-xs font-mono">{device.temperature.toFixed(1)}°C</span>
               </div>
             </div>
           </div>
@@ -176,13 +192,18 @@ export default function DigitalTwinMap({ isColorMode = false }: { isColorMode?: 
           <div className="space-y-2">
             <div className="flex justify-between text-[9px] font-mono uppercase">
               <span className="text-zinc-500">MQTT Queue</span>
-              <span className="text-blue-400">0 msgs</span>
+              <span className={device.mqttQueueDepth > 10 ? 'text-yellow-400' : 'text-blue-400'}>
+                {device.mqttQueueDepth} msgs
+              </span>
             </div>
             <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
-              <div className="h-full bg-blue-500 w-1/5" />
+              <div 
+                className={`h-full transition-all duration-500 ${device.mqttQueueDepth > 10 ? 'bg-yellow-500' : 'bg-blue-500'}`}
+                style={{ width: `${Math.min((device.mqttQueueDepth / 20) * 100, 100)}%` }} 
+              />
             </div>
             <div className="text-[8px] font-mono text-zinc-600 text-center italic mt-1">
-              Firmware: GG-WIFI-AX-1.4.2
+              Firmware: {device.firmwareVersion}
             </div>
           </div>
         </div>

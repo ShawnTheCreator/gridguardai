@@ -1,6 +1,8 @@
 using System.Net.Http.Json;
 using System.Text.Json;
+using Backend.Hubs;
 using Backend.Models;
+using Microsoft.AspNetCore.SignalR;
 using MQTTnet;
 
 namespace Backend.Services
@@ -14,6 +16,7 @@ namespace Backend.Services
         private readonly IConfiguration _configuration;
         private readonly HttpClient _httpClient;
         private readonly TheftService _theftService;
+        private readonly IHubContext<GridGuardHub> _hubContext;
         private IMqttClient? _mqttClient;
 
         private const string MQTT_TOPIC = "grid/pole/telemetry";
@@ -23,16 +26,44 @@ namespace Backend.Services
         // even if the hardware didn't assert the flag (belt-and-suspenders safety net).
         private const float ANOMALY_THRESHOLD = 0.75f;
 
+        // In-memory store of edge device statuses for dashboard access
+        private static readonly Dictionary<string, EdgeDeviceStatus> _edgeDevices = new();
+        private static readonly object _deviceLock = new();
+
         public GridGuardOrchestrator(
             ILogger<GridGuardOrchestrator> logger,
             IConfiguration configuration,
             HttpClient httpClient,
-            TheftService theftService)
+            TheftService theftService,
+            IHubContext<GridGuardHub> hubContext)
         {
             _logger = logger;
             _configuration = configuration;
             _httpClient = httpClient;
             _theftService = theftService;
+            _hubContext = hubContext;
+        }
+
+        /// <summary>
+        /// Gets all currently tracked edge devices (ESP32 nodes)
+        /// </summary>
+        public static IReadOnlyDictionary<string, EdgeDeviceStatus> GetEdgeDevices()
+        {
+            lock (_deviceLock)
+            {
+                return new Dictionary<string, EdgeDeviceStatus>(_edgeDevices);
+            }
+        }
+
+        /// <summary>
+        /// Gets a specific edge device by ID
+        /// </summary>
+        public static EdgeDeviceStatus? GetEdgeDevice(string deviceId)
+        {
+            lock (_deviceLock)
+            {
+                return _edgeDevices.TryGetValue(deviceId, out var device) ? device : null;
+            }
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -141,6 +172,10 @@ namespace Backend.Services
                 };
             }
 
+            // ── Edge Device Tracking (ESP32 diagnostics) ──────────────────────────
+            // Track and broadcast device status when diagnostics are present
+            await UpdateEdgeDeviceStatusAsync(telemetry);
+
             // ── Cloud Integration Alert Path ──────────────────────────────────────
             // Trigger the full OBS → TaurusDB → ModelArts → SignalR pipeline
             // whenever the hardware, anomaly score, or Python microservice raise an alert.
@@ -174,6 +209,77 @@ namespace Backend.Services
         public async Task SimulateTelemetryAsync(TelemetryPayload telemetry)
         {
             await ProcessTelemetryAsync(telemetry);
+        }
+
+        /// <summary>
+        /// Updates edge device status from telemetry and broadcasts to dashboard clients
+        /// </summary>
+        private async Task UpdateEdgeDeviceStatusAsync(TelemetryPayload telemetry)
+        {
+            // Only update if we have device identification or device-specific diagnostics
+            if (string.IsNullOrEmpty(telemetry.device_id) && 
+                telemetry.wifi_rssi == null && 
+                telemetry.device_temp == null)
+            {
+                return; // No device diagnostics in this telemetry
+            }
+
+            var deviceId = telemetry.device_id ?? telemetry.pole_id;
+            
+            lock (_deviceLock)
+            {
+                if (!_edgeDevices.TryGetValue(deviceId, out var device))
+                {
+                    device = new EdgeDeviceStatus
+                    {
+                        DeviceId = deviceId,
+                        PoleId = telemetry.pole_id
+                    };
+                    _edgeDevices[deviceId] = device;
+                }
+
+                // Update device properties from telemetry
+                if (telemetry.wifi_rssi.HasValue)
+                    device.SignalStrength = telemetry.wifi_rssi.Value;
+                if (telemetry.device_temp.HasValue)
+                    device.Temperature = telemetry.device_temp.Value;
+                if (!string.IsNullOrEmpty(telemetry.firmware_version))
+                    device.FirmwareVersion = telemetry.firmware_version;
+                if (telemetry.mqtt_queue_depth.HasValue)
+                    device.MqttQueueDepth = telemetry.mqtt_queue_depth.Value;
+                if (telemetry.cpu_utilization.HasValue)
+                    device.CpuUtilization = telemetry.cpu_utilization.Value;
+                if (telemetry.uptime_hours.HasValue)
+                    device.UptimeHours = telemetry.uptime_hours.Value;
+
+                device.LastSeen = DateTime.UtcNow;
+                device.Status = "online";
+            }
+
+            // Broadcast update to all connected dashboard clients
+            var payload = new EdgeDevicePayload
+            {
+                deviceId = deviceId,
+                poleId = telemetry.pole_id,
+                signalStrength = _edgeDevices[deviceId].SignalStrength,
+                temperature = _edgeDevices[deviceId].Temperature,
+                firmwareVersion = _edgeDevices[deviceId].FirmwareVersion,
+                mqttQueueDepth = _edgeDevices[deviceId].MqttQueueDepth,
+                status = _edgeDevices[deviceId].Status,
+                lastSeen = _edgeDevices[deviceId].LastSeen,
+                cpuUtilization = _edgeDevices[deviceId].CpuUtilization,
+                uptimeHours = _edgeDevices[deviceId].UptimeHours
+            };
+
+            try
+            {
+                await GridGuardHub.BroadcastEdgeDeviceUpdateAsync(_hubContext, payload);
+                _logger.LogDebug("Broadcasted edge device update for {DeviceId}", deviceId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to broadcast edge device update for {DeviceId}", deviceId);
+            }
         }
     }
 }
