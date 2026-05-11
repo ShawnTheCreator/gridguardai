@@ -1,6 +1,6 @@
 "use client";
 
-import { Sidebar } from "@/components/layout/WorkerSidebar";
+import { WorkerSidebar } from "@/components/layout/WorkerSidebar";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function WorkerLayout({
@@ -20,7 +20,7 @@ export default function WorkerLayout({
 
   return (
     <div className="flex h-screen bg-void">
-      <Sidebar />
+      <WorkerSidebar />
       <main className="flex-1 overflow-y-auto custom-scroll">
         {children}
       </main>
