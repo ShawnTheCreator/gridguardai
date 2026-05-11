@@ -20,6 +20,12 @@ interface Notification {
   };
 }
 
+interface NotificationAction {
+  action: string;
+  label: string;
+  icon?: string;
+}
+
 interface NotificationPermissionState {
   granted: boolean;
   permission: NotificationPermission;
